@@ -2,6 +2,9 @@ const express = require('express');
 var app = express();
 var port = 3000;
 var router1 = express.Router();
+const connectDB = require('./database/db');
+
+connectDB();
 
 router1.get('/', (req, res) => {
     res.json('router 1 user')
