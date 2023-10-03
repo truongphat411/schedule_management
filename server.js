@@ -1,22 +1,8 @@
-const express = require('express');
-var app = express();
-var port = 3000;
-var router1 = express.Router();
-const connectDB = require('./database/db');
+const app = require('./app');
+const { logger } = require('./src/utils/logger');
 
-connectDB();
+const PORT = process.env.PORT || 3000;
 
-router1.get('/', (req, res) => {
-    res.json('router 1 user')
-})
-
-app.get('/', (req, res) => {
-    res.json('PhatNMTTT')
-})
-
-app.use('/api1/', router1)
-
-
-app.listen(port, () => {
-    console.log('Server started on port ${port}')
-})
+app.listen(PORT, () => {
+    logger.info(`Running on PORT ${PORT}`);
+});
