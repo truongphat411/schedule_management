@@ -23,10 +23,15 @@ const findUserByEmail = `
 SELECT * FROM users WHERE email = ?
 `;
 
+const findUserById = `
+SELECT * FROM users WHERE id = ?
+`
+
 module.exports = {
     createDB,
     dropDB,
     createTableUSers,
     createNewUser,
-    findUserByEmail
+    findUserByEmail,
+    findUserById
 };

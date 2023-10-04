@@ -1,5 +1,5 @@
 const db = require('../config/db.config');
-const { createNewUser: createNewUserQuery, findUserByEmail: findUserByEmailQuery } = require('../database/queries');
+const { createNewUser: createNewUserQuery, findUserByEmail: findUserByEmailQuery , findUserById: findUserByIdQuery} = require('../database/queries');
 const { logger } = require('../utils/logger');
 
 class User {
@@ -30,6 +30,21 @@ class User {
                     email: newUser.email
                 });
         });
+    }
+
+    static findById(id, cb) {
+        db.query(findUserByIdQuery, id, (err, res) => {
+            if (err) {
+                logger.error(err.message);
+                cb(err, null);
+                return;
+            }
+            if (res.length) {
+                cb(null, res[0]);
+                return;
+            }
+            cb({ kind: "not_found" }, null);
+        })
     }
 
     static findByEmail(email, cb) {

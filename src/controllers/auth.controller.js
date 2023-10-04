@@ -27,14 +27,14 @@ exports.signup = (req, res) => {
     });
 };
 
-exports.signin = (req, res) => {
-    const { email, password } = req.body;
-    User.findByEmail(email.trim(), (err, data) => {
+exports.getUserById = (req, res) => {
+    const id  = req.params.id;
+    User.findById(id, (err, data) => {
         if (err) {
             if (err.kind === "not_found") {
                 res.status(404).send({
                     status: 'error',
-                    message: `User with email ${email} was not found`
+                    message: `User with id ${id} was not found`
                 });
                 return;
             }
@@ -45,24 +45,52 @@ exports.signin = (req, res) => {
             return;
         }
         if (data) {
-            if (comparePassword(password.trim(), data.password)) {
-                const token = generateToken(data.id);
                 res.status(200).send({
                     status: 'success',
                     data: {
-                        token,
                         firstname: data.firstname,
                         lastname: data.lastname,
                         email: data.email
                     }
                 });
                 return;
-            }
             res.status(401).send({
                 status: 'error',
                 message: 'Incorrect password'
             });
         }
     });
+
+    exports.getUserById = (req, res) => {
+        const { id } = req.params.id;
+        User.findById(id, (err,data) => {
+            if(err) {
+                if (err.kind === "not_found") {
+                    res.status(404).send({
+                        status: 'error',
+                        message: `User with email ${email} was not found`
+                    });
+                    return;
+                }
+                res.status(500).send({
+                    status: 'error',
+                    message: err.message
+                });
+                return;
+            }
+            if (data) {
+                    res.status(200).send({
+                        status: 'success',
+                        data: {
+                            id: data.id,
+                            firstname: data.firstname,
+                            lastname: data.lastname,
+                            email: data.email
+                        }
+                    });
+                    return;
+            }
+        })
+    }
 
 }
