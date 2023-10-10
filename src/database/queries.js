@@ -19,8 +19,8 @@ const createNewUser = `
 INSERT INTO users VALUES(null, ?, ?, ?, ?, NOW())
 `;
 
-const findUserByEmail = `
-SELECT * FROM users WHERE email = ?
+const findUserByUserName = `
+SELECT * FROM users WHERE username = ?
 `;
 
 const findUserById = `
@@ -32,6 +32,6 @@ module.exports = {
     dropDB,
     createTableUSers,
     createNewUser,
-    findUserByEmail,
+    findUserByUserName: findUserByUserName,
     findUserById
 };

@@ -15,9 +15,8 @@ const signup = (req, res, next) => {
             .min(3)
             .max(50)
             .required(),
-        email: Joi.string()
+        username: Joi.string()
             .trim()
-            .email()
             .required(),
         password: Joi.string()
             .trim()
@@ -29,9 +28,8 @@ const signup = (req, res, next) => {
 
 const signin = (req, res, next) => {
     const schema = Joi.object().keys({
-        email: Joi.string()
+        username: Joi.string()
             .trim()
-            .email()
             .required(),
         password: Joi.string()
             .trim()
