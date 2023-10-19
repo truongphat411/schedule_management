@@ -2,17 +2,19 @@ const db = require('../config/db.config');
 const { createNewCourse: createNewCourseQuery,} = require('../database/queries');
 const { logger } = require('../utils/logger');
 
-class Course {
-    constructor(course_name, credits) {
-        this.course_name = course_name;
-        this.credits = credits;
+class MeetingTime {
+    constructor(day, start_time,end_time) {
+        this.day = day;
+        this.start_time = start_time;
+        this.end_time = end_time;
     }
    
-    static create(newCourse, cb) {
+    static create(newMeetingTime, cb) {
         db.query(createNewCourseQuery, 
             [
-                newCourse.course_name, 
-                newCourse.max,
+                newMeetingTime.day, 
+                newMeetingTime.start_time,
+                newMeetingTime.end_time,
             ], (err, res) => {
                 if (err) {
                     logger.error(err.message);
@@ -21,11 +23,12 @@ class Course {
                 }
                 cb(null, {
                     id: res.insertId,
-                    course_name: newCourse.course_name,
-                    credits: newCourse.credits
+                    day: newMeetingTime.day,
+                    start_time: newMeetingTime.start_time,
+                    end_time: newMeetingTime.end_time
                 });
         });
     }
 }
 
-module.exports = Course;
+module.exports = MeetingTime;
