@@ -32,21 +32,6 @@ class User {
         });
     }
 
-    static findById(id, cb) {
-        db.query(findUserByIdQuery, id, (err, res) => {
-            if (err) {
-                logger.error(err.message);
-                cb(err, null);
-                return;
-            }
-            if (res.length) {
-                cb(null, res[0]);
-                return;
-            }
-            cb({ kind: "not_found" }, null);
-        })
-    }
-
     static findByUserName(username, cb) {
         db.query(findUserByUserNameQuery, username, (err, res) => {
             if (err) {
