@@ -3,10 +3,10 @@ const { hash: hashPassword, compare: comparePassword } = require('../utils/passw
 const { generate: generateToken } = require('../utils/token');
 
 exports.signup = (req, res) => {
-    const { firstname, lastname, username, password } = req.body;
+    const { firstname, lastname, email, password } = req.body;
     const hashedPassword = hashPassword(password.trim());
 
-    const user = new User(firstname.trim(), lastname.trim(), username.trim(), hashedPassword);
+    const user = new User(firstname.trim(), lastname.trim(), email.trim(), hashedPassword);
 
     User.create(user, (err, data) => {
         if (err) {
@@ -28,13 +28,13 @@ exports.signup = (req, res) => {
 };
 
 exports.signin = (req, res) => {
-    const { username, password } = req.body;
+    const { email, password } = req.body;
     User.findByUserName(username.trim(), (err, data) => {
         if (err) {
             if (err.kind === "not_found") {
                 res.status(404).send({
                     status: 'error',
-                    message: `User with username ${username} was not found`
+                    message: `User with email ${email} was not found`
                 });
                 return;
             }
@@ -53,7 +53,7 @@ exports.signin = (req, res) => {
                         token,
                         firstname: data.firstname,
                         lastname: data.lastname,
-                        username: data.username
+                        email: data.email
                     }
                 });
                 return;

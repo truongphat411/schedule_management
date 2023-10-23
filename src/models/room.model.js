@@ -3,21 +3,21 @@ const {
     createNewRoom: createNewRoomQuery,
     findRoomById: findRoomByIdQuery,
     updateRoomById: updateRoomByIdQuery,
-    deleteRoomById: deleteRoomByIdQuery,
+    deleteRoomById: deleteRoomByIdQuery
 } = require('../database/queries');
 const { logger } = require('../utils/logger');
 
 class Room {
-    constructor(room_name, seating_capacity) {
+    constructor(room_name, capacity) {
         this.room_name = room_name;
-        this.seating_capacity = seating_capacity;
+        this.capacity = capacity;
     }
    
     static create(newRoom, cb) {
         db.query(createNewRoomQuery, 
             [
-                newRoom.room_name, 
-                newRoom.seatingCapacity,
+                newRoom.room_name,
+                newRoom.capacity
             ], (err, res) => {
                 if (err) {
                     logger.error(err.message);
@@ -27,7 +27,7 @@ class Room {
                 cb(null, {
                     id: res.insertId,
                     room_name: newRoom.room_name,
-                    seating_capacity: newRoom.seating_capacity
+                    capacity: newRoom.capacity,
                 });
         });
     }
@@ -51,7 +51,7 @@ class Room {
         db.query(updateRoomByIdQuery, 
         [   
             room.room_name,
-            room.seating_capacity
+            room.capacity
         ], (err, res) => {
                 if (err) {
                     logger.error(err.message);
@@ -61,7 +61,7 @@ class Room {
                 cb(null, {
                     id: res.insertId,
                     room_name: room.room_name,
-                    seating_capacity: room.seating_capacity
+                    capacity: room.capacity
                 });
         });
     }
