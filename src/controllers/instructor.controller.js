@@ -1,9 +1,9 @@
 const Instructor = require('../models/instructor.model');
 
 exports.create = (req, res) => {
-    const {instructor_name, major_id} = req.body;
+    const {instructor_name} = req.body;
 
-    const instructor = new Instructor(instructor_name, major_id);
+    const instructor = new Instructor(instructor_name);
 
     Instructor.create(instructor, (err, data) => {
         if (err) {
@@ -25,7 +25,7 @@ exports.create = (req, res) => {
 exports.read = (req, res) => {
     const instructorId = req.params.instructorId;
 
-    Room.read(instructorId, (err, data) => {
+    Instructor.read(instructorId, (err, data) => {
         if(err) {
             if (err.kind === "not_found") {
                 res.status(404).send({
@@ -45,7 +45,6 @@ exports.read = (req, res) => {
                 status: 'success',
                 data: {
                     instructor_name: data.instructor_name,
-                    major_id: data.major_id,
                 }
             });
             return;
@@ -56,7 +55,7 @@ exports.read = (req, res) => {
 exports.update = (req, res) => {
     const {instructor_name, major_id} = req.body;
 
-    const instructor = new Room(instructor_name, major_id);
+    const instructor = new Instructor(instructor_name);
 
     Instructor.update(instructor, (err, data) => {
         if(err) {

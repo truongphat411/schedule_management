@@ -6,15 +6,16 @@ const { authenticatateJWT } = require('../middlewares/authenticator');
 
 router.route('/create-course')
     .post(authenticatateJWT, asyncHandler(courseController.create));
+    
 
-router.route('/:courseId')
-    .get(authenticatateJWT, asyncHandler(courseController.read));
+router.route('/course/:id')
+    .post(authenticatateJWT, asyncHandler(courseController.create));
 
-router.route('/update-course')
-    .post(authenticatateJWT, asyncHandler(courseController.update));
 
-router.route('/delete-course/:courseId')
-    .get(authenticatateJWT, asyncHandler(courseController.delete));
+router.route('/')
+    .post(signinValidator, asyncHandler(courseController.signin));
+
+router.route('/getUserById/:id').get(authenticatateJWT, asyncHandler(courseController.getUserById));
 
 
 module.exports = router;

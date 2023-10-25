@@ -12,6 +12,7 @@ class Course {
         this.course_name = course_name;
         this.credits = credits;
     }
+
    
     static create(newCourse, cb) {
         db.query(createNewCourseQuery, 
@@ -31,6 +32,7 @@ class Course {
                 });
         });
     }
+    
 
     static read(courseId, cb) {
         db.query(findCourseByIdQuery, courseId, (err, res) => {
