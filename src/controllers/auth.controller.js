@@ -6,7 +6,7 @@ exports.signup = (req, res) => {
     const { firstname, lastname, email, password } = req.body;
     const hashedPassword = hashPassword(password.trim());
 
-    const user = new User(firstname.trim(), lastname.trim(), email.trim(), hashedPassword);
+    const user = new User(null,firstname.trim(), lastname.trim(), email.trim(), hashedPassword);
 
     User.create(user, (err, data) => {
         if (err) {
@@ -29,7 +29,7 @@ exports.signup = (req, res) => {
 
 exports.signin = (req, res) => {
     const { email, password } = req.body;
-    User.findByUserName(username.trim(), (err, data) => {
+    User.findByEmail(email.trim(), (err, data) => {
         if (err) {
             if (err.kind === "not_found") {
                 res.status(404).send({

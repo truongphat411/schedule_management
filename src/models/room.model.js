@@ -8,7 +8,8 @@ const {
 const { logger } = require('../utils/logger');
 
 class Room {
-    constructor(room_name, capacity) {
+    constructor(id,room_name, capacity) {
+        this.id = id;
         this.room_name = room_name;
         this.capacity = capacity;
     }

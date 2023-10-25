@@ -8,12 +8,13 @@ const {
 const { logger } = require('../utils/logger');
 
 class Course {
-    constructor(course_name, credits) {
+    constructor(id,course_name, credits,instructors) {
+        this.id = id;
         this.course_name = course_name;
         this.credits = credits;
+        this.instructors = instructors;
     }
-
-   
+    
     static create(newCourse, cb) {
         db.query(createNewCourseQuery, 
             [
@@ -32,7 +33,6 @@ class Course {
                 });
         });
     }
-    
 
     static read(courseId, cb) {
         db.query(findCourseByIdQuery, courseId, (err, res) => {
@@ -78,21 +78,6 @@ class Course {
                 cb(null, {message: 'Course deleted successfully'})
         });
     }
-
-    // static realAll(course, cb) {
-    //     db.query(findCourseByIdQuery, courseId, (err, res) => {
-    //             if (err) {
-    //                 logger.error(err.message);
-    //                 cb(err, null);
-    //                 return;
-    //             }
-    //             if (res.length) {
-    //                 cb(null, res[0]);
-    //                 return;
-    //             }
-    //             cb({ kind: "not_found" }, null);
-    //     });
-    // }
 }
 
 module.exports = Course;

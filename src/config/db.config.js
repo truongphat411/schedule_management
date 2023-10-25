@@ -10,21 +10,9 @@ const connection = mysql.createConnection({
     database: DB_NAME
 });
 
-function async_get_query(sql_query) {
-    return util.promisify(connection.query).call(connection, sql_query);
-} 
-
-function async_push_query(sql_query, info) {
-    return util.promisify(connection.query).call(connection, sql_query, info);
-}
-
 connection.connect((err) => {
     if (err) logger.error(err.message);
     else logger.info('Database connected')
 });
 
-module.exports = {
-    connection,
-    async_get_query,
-    async_push_query
-};
+module.exports = connection;

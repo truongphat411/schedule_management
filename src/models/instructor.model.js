@@ -8,9 +8,9 @@ const {
 const { logger } = require('../utils/logger');
 
 class Instructor {
-    constructor(instructor_name, major_id) {
+    constructor(id,instructor_name) {
+        this.id = id;
         this.instructor_name = instructor_name;
-        this.major_id = major_id;
     }
    
     static create(newInstructor, cb) {
@@ -26,7 +26,6 @@ class Instructor {
                 cb(null, {
                     id: res.insertId,
                     instructor_name: newInstructor.instructor_name,
-                    major_id: newInstructor.major_id,
                 });
         });
     }
@@ -50,7 +49,6 @@ class Instructor {
         db.query(updateInstructorByIdQuery, 
         [   
             instructor.instructor_name,
-            instructor.major_id,
         ], (err, res) => {
                 if (err) {
                     logger.error(err.message);
@@ -60,7 +58,6 @@ class Instructor {
                 cb(null, {
                     id: res.insertId,
                     instructor_name: instructor.instructor_name,
-                    major_id: instructor.major_id,
                 });
         });
     }
