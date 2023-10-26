@@ -14,6 +14,8 @@ async function main(){
     console.log('Meeting Time: ', data.getMeetingTimes());
     console.log('///// Instructor /////');
     console.log('Instructor: ', data.getInstructors());
+    console.log('///// Course /////');
+    console.log('Course: ', data.getCourses());
 }
 
 main();

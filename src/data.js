@@ -43,10 +43,21 @@ class Data {
         }
         this.instructors = instr;
         //// Course
-        const rsc = await async_get_query("SELECT c.id AS course_id, c.course_name, GROUP_CONCAT(i.instructor_name) AS list_instructor FROM course c, JOIN course_instructor ci ON c.id = ci.id_course, JOIN instructor i ON ci.id_instructor = i.id, GROUP BY c.id, c.course_name");
+        const rsc = await async_get_query(`
+        SELECT
+        c.id AS course_id,
+        c.course_name,
+        c.credits,
+        c.maxNumberOfStudents,
+        GROUP_CONCAT(i.instructor_name) AS list_instructor
+        FROM course c
+        JOIN course_instructor ci ON c.id = ci.id_course
+        JOIN instructor i ON ci.id_instructor = i.id
+        GROUP BY c.id, c.course_name, c.credits, c.maxNumberOfStudents
+        `);
         const c = [];
         for (let i of rsc) {
-            const course = new Course();
+            const course = new Course(i.id,i.course_name,i.credits,i.maxNumberOfStudents,i.listInstructor);
             c.push(course);
         }
         this.course = c;
