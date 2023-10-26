@@ -8,18 +8,41 @@ const {
 const { logger } = require('../utils/logger');
 
 class Course {
-    constructor(id,course_name, credits,instructors) {
+    constructor(id,course_name, credits, maxNumberOfStudents, listInstructor) {
         this.id = id;
         this.course_name = course_name;
         this.credits = credits;
-        this.instructors = instructors;
+        this.maxNumberOfStudents = maxNumberOfStudents;
+        this.listInstructor = listInstructor;
     }
+
+    getCourseId(){
+        return this.id;
+    }
+
+    getCourseName() {
+        return this.course_name;
+    }
+
+    getCredits(){
+        return this.credits;
+    }
+
+    getMaxNumberOfStudents(){
+        return this.maxNumberOfStudents;
+    }
+
+    getListInstructor(){
+        return this.listInstructor;
+    }
+
     
     static create(newCourse, cb) {
         db.query(createNewCourseQuery, 
             [
                 newCourse.course_name, 
                 newCourse.credits,
+                newCourse.maxNumberOfStudents,
             ], (err, res) => {
                 if (err) {
                     logger.error(err.message);
@@ -29,7 +52,8 @@ class Course {
                 cb(null, {
                     id: res.insertId,
                     course_name: newCourse.course_name,
-                    credits: newCourse.credits
+                    credits: newCourse.credits,
+                    maxNumberOfStudents: newCourse.maxNumberOfStudents
                 });
         });
     }
@@ -53,7 +77,8 @@ class Course {
         db.query(updateCourseByIdQuery, 
         [   
             course.course_name,
-            course.credits
+            course.credits,
+            course.maxNumberOfStudents,
         ], (err, res) => {
                 if (err) {
                     logger.error(err.message);
@@ -63,7 +88,8 @@ class Course {
                 cb(null, {
                     id: res.insertId,
                     course_name: course.course_name,
-                    credits: course.credits
+                    credits: course.credits,
+                    maxNumberOfStudents: course.maxNumberOfStudents,
                 });
         });
     }

@@ -24,7 +24,7 @@ SELECT * FROM user WHERE email = ?
 `;
 
 const createNewCourse = `
-INSERT INTO course VALUES(null, ?, ?)
+INSERT INTO course VALUES(null, ?, ?, ?)
 `;
 
 const findCourseById = `
@@ -32,7 +32,7 @@ SELECT * FROM course WHERE id = ?
 `
 
 const updateCourseById = `
-UPDATE course SET course_name = ?, maximum_number_of_student = ?
+UPDATE course SET course_name = ?, credits = ?, maxNumberOfStudents = ?
 `
 
 const deleteCourseById = `
@@ -40,7 +40,7 @@ DELETE FROM course WHERE id = ?
 `
 
 const createNewInstructor = `
-INSERT INTO instructor VALUES(null, ?, ?)
+INSERT INTO instructor VALUES(null, ?)
 `;
 
 const findInstructorById = `
@@ -48,7 +48,7 @@ SELECT * FROM instructor WHERE id = ?
 `
 
 const updateInstructorById = `
-UPDATE instructor SET course_name = ?, maximum_number_of_student = ?
+UPDATE instructor SET instructor_name = ?
 `
 
 const deleteInstructorById = `
@@ -64,7 +64,7 @@ SELECT * FROM room WHERE id = ?
 `
 
 const updateRoomById = `
-UPDATE room SET course_name = ?, maximum_number_of_student = ?
+UPDATE room SET room_name = ?, capacity = ?
 `
 
 const deleteRoomById = `

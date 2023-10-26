@@ -7,6 +7,18 @@ class MeetingTime {
         this.start_time = start_time;
         this.end_time = end_time;
     }
+
+    getDay(){
+        return this.day;
+    }
+
+    getStartTime(){
+        return this.start_time;
+    }
+
+    getEndTime(){
+        return this.end_time;
+    }
 }
 
 module.exports = MeetingTime;

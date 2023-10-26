@@ -13,6 +13,18 @@ class Room {
         this.room_name = room_name;
         this.capacity = capacity;
     }
+
+    getRoomId() {
+        return this.id;
+    }
+
+    getRoomName(){
+        return this.room_name;
+    }
+
+    getCapacity(){
+        return this.capacity;
+    }
    
     static create(newRoom, cb) {
         db.query(createNewRoomQuery, 

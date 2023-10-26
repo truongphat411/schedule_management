@@ -12,6 +12,15 @@ class Instructor {
         this.id = id;
         this.instructor_name = instructor_name;
     }
+
+    getInstructorId() {
+        return this.id;
+      }
+    
+      getInstructorName() {
+        return this.instructorName;
+      }
+    
    
     static create(newInstructor, cb) {
         db.query(createNewInstructorQuery, 

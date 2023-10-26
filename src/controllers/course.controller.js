@@ -1,9 +1,9 @@
 const Course = require('../models/course.model');
 
 exports.create = (req, res) => {
-    const {course_name, credits} = req.body;
+    const {course_name, credits, maxNumberOfStudents} = req.body;
 
-    const course = new Course(course_name, credits);
+    const course = new Course(null,course_name, credits, maxNumberOfStudents, null);
 
     Course.create(course, (err, data) => {
         if (err) {
