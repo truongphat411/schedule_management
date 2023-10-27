@@ -8,12 +8,12 @@ const {
 const { logger } = require('../utils/logger');
 
 class Course {
-    constructor(id,course_name, credits, maxNumberOfStudents, listInstructor) {
+    constructor(id,course_name, credits, maxNumberOfStudents, instructors) {
         this.id = id;
         this.course_name = course_name;
         this.credits = credits;
         this.maxNumberOfStudents = maxNumberOfStudents;
-        this.listInstructor = listInstructor;
+        this.instructors = instructors;
     }
 
     getCourseId(){
@@ -33,7 +33,7 @@ class Course {
     }
 
     getInstructors(){
-        return this.listInstructor;
+        return this.instructors;
     }
 
     

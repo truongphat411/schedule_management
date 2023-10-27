@@ -15,33 +15,34 @@ class Schedule{
         return this.data;
     }
 
-    // initialize(){
-    //     console.log('PhatNMT-log: ', this.data.getDepartment())
-    //     this.data.getDepartment().foreach(dept => {
-    //         dept.getListCourse().foreach(course => {
-    //             const newClass = new Class(this.classNumb++, dept, course);
-    //             newClass.setMeetingTime(this.data.getMeetingTimes()[Math.floor(Math.random() * this.data.getMeetingTimes().length)]);
-    //             newClass.setRoom(data.getRoom()[Math.floor(Math.random() * this.data.getRooms().length)]);
-    //             newClass.setInstructor(course.getInstructors()[Math.floor(Math.random() * course.getInstructors().length)]);
-    //             this.classes.push(newClass);
-    //         });
-    //     });
-    //     return this;
-    // }
-
-    initialize() {      
-      this.data.getDepts().forEach(dept => {
-          dept.getCourses().forEach(course => {
-              const newClass = new Class(this.classNumb++, dept, course);
-              newClass.setMeetingTime(this.data.getMeetingTimes()[Math.floor(Math.random() * this.data.getMeetingTimes().length)]);
-              newClass.setRoom(this.data.getRooms()[Math.floor(Math.random() * this.data.getRooms().length)]);
-              newClass.setInstructor(this.data.getInstructors()[Math.floor(Math.random() * this.data.getInstructors().length)]);
-              this.classes.push(newClass);
-          });
-      });
-  
-      return this;
+    initialize(){
+        this.data.getDepts().forEach(dept => {
+            dept.getCourses().forEach(course => {
+                const newClass = new Class(this.classNumb++, dept, course);
+                newClass.setMeetingTime(this.data.getMeetingTimes()[Math.floor(Math.random() * this.data.getMeetingTimes().length)]);
+                newClass.setRoom(this.data.getRooms()[Math.floor(Math.random() * this.data.getRooms().length)]);
+                newClass.setInstructor(course.getInstructors()[Math.floor(Math.random() * course.getInstructors().length)]);
+                this.classes.push(newClass);
+            });
+        });
+        return this;
     }
+
+    // initialize() {      
+    //   this.data.getDepts().forEach(dept => {
+    //       dept.getCourses().forEach(course => {
+    //         course.getInstructors().forEach(instructor => {
+    //           const newClass = new Class(this.classNumb++, dept, course, instructor);
+    //           newClass.setMeetingTime(this.data.getMeetingTimes()[Math.floor(Math.random() * this.data.getMeetingTimes().length)]);
+    //           newClass.setRoom(this.data.getRooms()[Math.floor(Math.random() * this.data.getRooms().length)]);
+    //           //newClass.setInstructor(this.data.getInstructors()[Math.floor(Math.random() * this.data.getInstructors().length)]);
+    //           this.classes.push(newClass);
+    //         });
+    //       });
+    //   });
+  
+    //   return this;
+    // }
 
     getNumberOfConflicts() {
         return this.numbOfConflicts;
@@ -63,6 +64,7 @@ class Schedule{
 
     calculateFitness() {
         this.numbOfConflicts = 0;
+
         this.classes.forEach(x => {
           if (x.getRoom().getSeatingCapacity() < x.getCourse().getMaxNumberOfStudents()) {
             this.numbOfConflicts++;
@@ -78,7 +80,6 @@ class Schedule{
             }
           });
         });
-    
         return 1 / (this.numbOfConflicts + 1);
     }
 

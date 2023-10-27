@@ -89,7 +89,16 @@ class Data {
             // Parse the JSON string into an array of course objects
             const courseArray = JSON.parse(`[${i.listCourse}]`);
             // Create an array of course objects
-            const courses = courseArray.map((course) => new Course(course.id, course.course_name, course.credits, course.maxNumberOfStudents, null));
+            const courses = [];
+            for (let x of courseArray) {
+                for(let y of this.courses){
+                    if(x.id === y.id){
+                        const course = new Course(x.id, x.course_name, x.credits, x.maxNumberOfStudents, y.instructors);
+                        courses.push(course);
+                    }
+                }
+            }
+            // const courses = courseArray.map((course) => new Course(course.id, course.course_name, course.credits, course.maxNumberOfStudents, null));
             const department = new Department(i.major_name,courses);
             dept.push(department);
         }

@@ -1,10 +1,10 @@
-const Driver = require("./driver");
 const Schedule = require("./schedule");
 const Population = require("./population");
 
 class GeneticAlgorithm {
-  constructor(data) {
+  constructor(data, driver) {
     this.data = data;
+    this.driver = driver;
   }
 
   evolve(population) {
@@ -12,14 +12,14 @@ class GeneticAlgorithm {
   }
 
   crossoverPopulation(population) {
-    const crossoverPopulation = new Population(population.getSchedules().length, this.data);
+    var crossoverPopulation = new Population(population.getSchedules().length, this.data);
 
-    for (let x = 0; x < Driver.NUMB_OF_ELITE_SCHEDULES; x++) {
+    for (let x = 0; x < this.driver.getNUMB_OF_ELITE_SCHEDULES; x++) {
       crossoverPopulation.getSchedules()[x] = population.getSchedules()[x];
     }
 
-    for (let x = Driver.NUMB_OF_ELITE_SCHEDULES; x < population.getSchedules().length; x++) {
-      if (Driver.CROSSOVER_RATE > Math.random()) {
+    for (let x = this.driver.getNUMB_OF_ELITE_SCHEDULES; x < population.getSchedules().length; x++) {
+      if (this.driver.getCROSSOVER_RATE > Math.random()) {
         const schedule1 = selectTournamentPopulation(population).sortByFitness().getSchedules()[0];
         const schedule2 = selectTournamentPopulation(population).sortByFitness().getSchedules()[0];
         crossoverPopulation.getSchedules()[x] = crossoverSchedule(schedule1, schedule2);
@@ -44,7 +44,7 @@ class GeneticAlgorithm {
   }
 
   crossoverSchedule(schedule1, schedule2) {
-    const crossoverSchedule = new Schedule(this.data).initialize();
+    var crossoverSchedule = new Schedule(this.data).initialize();
     for (let x = 0; x < crossoverSchedule.getClasses().length; x++) {
       if (Math.random() > 0.5) {
         crossoverSchedule.getClasses()[x] = schedule1.getClasses()[x];
@@ -64,14 +64,14 @@ class GeneticAlgorithm {
   }
 
   mutatePopulation(population) {
-    const mutatePopulation = new Population(population.getSchedules().length, this.data);
-    const schedules = mutatePopulation.getSchedules();
+    var mutatePopulation = new Population(population.getSchedules().length, this.data);
+    var schedules = mutatePopulation.getSchedules();
 
-    for (let x = 0; x < Driver.NUMB_OF_ELITE_SCHEDULES; x++) {
+    for (let x = 0; x < this.driver.getNUMB_OF_ELITE_SCHEDULES; x++) {
       schedules[x] = population.getSchedules()[x];
     }
 
-    for (let x = Driver.NUMB_OF_ELITE_SCHEDULES; x < population.getSchedules().length; x++) {
+    for (let x = this.driver.getNUMB_OF_ELITE_SCHEDULES; x < population.getSchedules().length; x++) {
       schedules[x] = mutateSchedule(population.getSchedules()[x]);
     }
 
@@ -86,10 +86,10 @@ class GeneticAlgorithm {
   }
 
   mutateSchedule(mutateSchedule) {
-    const schedule = new Schedule(this.data).initialize();
+    var schedule = new Schedule(this.data).initialize();
 
     for (let x = 0; x < mutateSchedule.getClasses().length; x++) {
-      if (Driver.MUTATION_RATE > Math.random()) {
+      if (this.driver.getMUTATION_RATE > Math.random()) {
         mutateSchedule.getClasses()[x] = schedule.getClasses()[x];
       }
     }
@@ -103,10 +103,10 @@ class GeneticAlgorithm {
   }
 
   selectTournamentPopulation(population) {
-    const tournamentPopulation = new Population(Driver.TOURNAMENT_SELECTION_SIZE, this.data);
+    var tournamentPopulation = new Population(this.driver.getTOURNAMENT_SELECTION_SIZE, this.data);
 
-    for (let x = 0; x < Driver.TOURNAMENT_SELECTION_SIZE; x++) {
-      const randomIndex = Math.floor(Math.random() * population.getSchedules().length);
+    for (let x = 0; x < this.driver.getTOURNAMENT_SELECTION_SIZE; x++) {
+      var randomIndex = Math.floor(Math.random() * population.getSchedules().length);
       tournamentPopulation.getSchedules()[x] = population.getSchedules()[randomIndex];
     }
 

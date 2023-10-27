@@ -1,7 +1,6 @@
 const Data = require("./data");
 const Population = require("./population");
 const GeneticAlgorithm = require("./genetic_algorithm");
-const Department = require("./models/department.model");
 
 
 class Driver {
@@ -16,12 +15,43 @@ class Driver {
     this.data;
   }
 
+  getPOPULATION_SIZE(){
+    return this.POPULATION_SIZE;
+  }
+
+  getMUTATION_RATE(){
+    return this.MUTATION_RATE;
+  }
+
+  getCROSSOVER_RATE(){
+    return this.CROSSOVER_RATE;
+  }
+
+  getTOURNAMENT_SELECTION_SIZE(){
+    return this.TOURNAMENT_SELECTION_SIZE;
+  }
+
+  getNUMB_OF_ELITE_SCHEDULES(){
+    return this.NUMB_OF_ELITE_SCHEDULES;
+  }
+
+  getscheduleNumb(){
+    return this.scheduleNumb;
+  }
+
+  getclassNumb(){
+    return this.classNumb;
+  }
+
+
+
   async main() {
     this.data = new Data();
+    const driver = new Driver();
     await this.data.initialize();
     var generationNumber = 0;
-    const geneticAlgorithm = new GeneticAlgorithm(this.data);
-    const population = new Population(this.POPULATION_SIZE, this.data).sortByFitness();
+    const geneticAlgorithm = new GeneticAlgorithm(this.data,driver);
+    var population = new Population(this.POPULATION_SIZE, this.data).sortByFitness();
     this.classNumb = 1;
     population.getSchedules().forEach(schedule => {
       console.log(`     ${this.scheduleNumb++}     | ${schedule.toString()}  | ` +
@@ -57,17 +87,28 @@ class Driver {
 		  console.log("---------------------------------------------------------------");
 
       classes.forEach(x => {
-        console.log('PhatNMT-listdepartment: ',this.data.getDepts());
-        console.log('PhatNMT-listcourse: ',this.data.getCourses());
-        console.log('PhatNMT-major: ',x.getDept());
-        console.log('PhatNMT-course: ',x.getCourse());
-        console.log('PhatNMT-room: ',x.getRoom());
-        console.log('PhatNMT-instructor: ',x.getInstructor());
-        console.log('PhatNMT-meetingtime: ',x.getMeetingTime());
-        const majorIndex = this.data.getDepts().indexOf(x.getDept());
-        const coursesIndex = this.data.getCourses().indexOf(x.getCourse());
+        const listCourseName = [];
+        const courses = this.data.getCourses();
+        const listMajorName = [];
+        const majors = this.data.getDepts();
+        const listInstructorName = [];
+        const instructor = this.data.getInstructors();
+        for(let i of courses){
+          var name = i.course_name;
+          listCourseName.push(name);
+        }
+        for(let i of majors){
+          var name = i.major_name;
+          listMajorName.push(name);
+        }
+        for(let i of instructor){
+          var name = i.instructor_name;
+          listInstructorName.push(name);
+        }
+        const majorIndex = listMajorName.indexOf(x.getDept().major_name);
+        const coursesIndex = listCourseName.indexOf(x.getCourse().course_name);
         const roomsIndex = this.data.getRooms().indexOf(x.getRoom());
-        const instructorsIndex = this.data.getInstructors().indexOf(x.getInstructor());
+        const instructorsIndex = listInstructorName.indexOf(x.getInstructor().instructor_name);
         const meetingTimeIndex = this.data.getMeetingTimes().indexOf(x.getMeetingTime());
       //  const deptName = "";
       //   for (let i = 0; i < this.data.getDepts().length; i++) {
@@ -82,11 +123,13 @@ class Driver {
       // }
         //console.log("                     ");
         console.log(`\n  ${this.classNumb.toString().padStart(2, ' ')}  |  ` +
-      `${this.data.getDepts()[majorIndex].getMajorName().toString().padStart(4, ' ')}  |  ` +
-      `${(this.data.getCourses()[coursesIndex].getCourseName() + " (" + this.data.getCourses()[coursesIndex].getCredits() + ", " + this.data.getCourses()[coursesIndex].getMaxNumberOfStudents()).padEnd(21, ' ')}  |  ` +
-      `${(this.data.getRooms()[roomsIndex].getRoomName() + "(" + this.data.getRooms[roomsIndex].getSeatingCapacity()).padEnd(10, ' ')}  |  ` +
-      `${(this.data.getInstructors()[instructorsIndex].getName() + " (" + this.data.getInstructors()[instructorsIndex].getId()).padEnd(15, ' ')}  |  ` +
-     `${this.data.getMeetingTimes()[meetingTimeIndex].getTime()} (${data.meetingTimes()[meetingTimeIndex].getId()})`);
+      `${this.data.getDepts()[majorIndex].major_name.toString().padStart(4, ' ')}  |  ` +
+      `${(this.data.getCourses()[coursesIndex].course_name + " (" + this.data.getCourses()[coursesIndex].credits + ", " + 
+      this.data.getCourses()[coursesIndex].maxNumberOfStudents).padEnd(21, ' ') + ")"}  |  ` +
+      `${(this.data.getRooms()[roomsIndex].room_name + " ( " + this.data.getRooms()[roomsIndex].capacity).padEnd(10, ' ')+ ")"}  |  ` +
+      `${(this.data.getInstructors()[instructorsIndex].instructor_name + 
+        " (" + this.data.getInstructors()[instructorsIndex].id).padEnd(15, ' ')+ ")"}  |  ` +
+     `${this.data.getMeetingTimes()[meetingTimeIndex].time} (${this.data.getMeetingTimes()[meetingTimeIndex].id})`);
 
       this.classNumb++;
       });
