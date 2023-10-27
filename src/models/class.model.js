@@ -1,12 +1,12 @@
 const db = require('../config/db.config');
 
 class Class {
-    constructor(id,course, instructor, meetingTime, room, dept) {
+    constructor(id, dept, course) {
         this.id = id;
         this.course = course;
-        this.instructor = instructor;
-        this.meetingTime = meetingTime;
-        this.room = room;
+        this.instructor = null;
+        this.meetingTime = null;
+        this.room = null;
         this.dept = dept;
     }
 

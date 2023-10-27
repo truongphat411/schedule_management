@@ -1,0 +1,71 @@
+const Data = require("./data");
+const Class = require("./models/class.model")
+
+
+class Schedule{
+    constructor(data) {
+        this.classes = [];
+        this.isFitnessChanged = true;
+        this.fitness = -1;
+        this.classNumb = 0;
+        this.numbOfConflicts = 0;
+        this.data = data;
+    }
+
+    getData(){
+        return this.data;
+    }
+
+    initialize(){
+        this.data.getDepartment().foreach(dept => {
+            dept.getListCourse().foreach(course => {
+                const newClass = new Class(this.classNumb++, dept, course);
+                newClass.setMeetingTime(this.data.getMeetingTimes()[Math.floor(Math.random() * this.data.getMeetingTimes().length)]);
+                newClass.setRoom(data.getRoom()[Math.floor(Math.random() * this.data.getRooms().length)]);
+                newClass.setInstructor(course.getInstructors()[Math.floor(Math.random() * course.getInstructors().length)]);
+                this.classes.push(newClass);
+            });
+        });
+        return this;
+    }
+
+    getNumberOfConflicts() {
+        return this.numbOfConflicts;
+    }
+
+    getClasses() {
+        this.isFitnessChanged = true;
+        return this.classes;
+    }
+
+    getFitness() {
+        if (this.isFitnessChanged === true) {
+          this.fitness = this.calculateFitness();
+          this.isFitnessChanged = false;
+        }
+    
+        return this.fitness;
+    }
+
+    calculateFitness() {
+        this.numbOfConflicts = 0;
+    
+        this.classes.forEach(x => {
+          if (x.getRoom().getSeatingCapacity() < x.getCourse().getMaxNumberOfStudents()) {
+            this.numbOfConflicts++;
+          }
+          this.classes.filter(y => this.classes.indexOf(y) >= this.classes.indexOf(x)).forEach(y => {
+            if (x.getMeetingTime() === y.getMeetingTime() && x.getId() !== y.getId()) {
+              if (x.getRoom() === y.getRoom()) {
+                this.numbOfConflicts++;
+              }
+              if (x.getInstructor() === y.getInstructor()) {
+                this.numbOfConflicts++;
+              }
+            }
+          });
+        });
+    
+        return 1 / (this.numbOfConflicts + 1);
+    }
+}

@@ -1,13 +1,13 @@
 const db = require('../config/db.config');
 
 class Department {
-    constructor(dept_name,listCourse) {
-        this.dept_name = dept_name;
+    constructor(major_name,listCourse) {
+        this.major_name = major_name;
     this.listCourse = listCourse;
     }
 
-    getDeptName() {
-        return this.deptName;
+      getMajorName() {
+        return this.major_name;
       }
     
       getListCourse() {

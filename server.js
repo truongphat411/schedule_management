@@ -1,7 +1,6 @@
 const app = require('./app');
 const { logger } = require('./src/utils/logger');
 const db = require('./src/config/db.config');
-const Course = require('./src/models/course.model');
 const Data = require('./src/data');
 
 const PORT = process.env.PORT || 3000;
@@ -16,6 +15,8 @@ async function main(){
     console.log('Instructor: ', data.getInstructors());
     console.log('///// Course /////');
     console.log('Course: ', data.getCourses());
+    console.log('///// Department /////');
+    console.log('Department: ', data.getDepartment());
 }
 
 main();

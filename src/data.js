@@ -4,6 +4,7 @@ const util = require('util');
 const Room = require('./models/room.model');
 const MeetingTime = require('./models/meeting_time.model');
 const Instructor = require('./models/instructor.model');
+const Department = require('./models/department.model');
 
 class Data {
 
@@ -45,11 +46,11 @@ class Data {
         //// Course
         const rsc = await async_get_query(`
         SELECT
-        c.id AS course_id,
+        c.id,
         c.course_name,
         c.credits,
         c.maxNumberOfStudents,
-        GROUP_CONCAT(i.instructor_name) AS list_instructor
+        GROUP_CONCAT(i.instructor_name) AS listInstructor
         FROM course c
         JOIN course_instructor ci ON c.id = ci.id_course
         JOIN instructor i ON ci.id_instructor = i.id
@@ -57,11 +58,30 @@ class Data {
         `);
         const c = [];
         for (let i of rsc) {
-            const course = new Course(i.id,i.course_name,i.credits,i.maxNumberOfStudents,i.listInstructor);
+            const course = new Course(i.id,i.course_name,i.credits,i.maxNumberOfStudents,i.listInstructor.split(','));
             c.push(course);
         }
-        this.course = c;
+        this.courses = c;
 
+        const rsdept = await async_get_query(`
+        SELECT
+        m.major_name,
+        GROUP_CONCAT(c.course_name) AS listCourse
+        FROM major m
+        LEFT JOIN major_course mc ON m.id = mc.id_major
+        LEFT JOIN course c ON mc.id_course = c.id
+        GROUP BY m.major_name
+        `);
+        const dept = [];
+        for (let i of rsdept) {
+            const department = new Department(i.major_name,i.listCourse.split(','));
+            dept.push(department);
+        }
+        this.depts = dept;
+
+        this.depts.forEach((department) => {
+            this.numberOfClasses += department.getListCourse().length;
+          });
     }
 
     getRoom(){
@@ -82,6 +102,10 @@ class Data {
 
     getDepartment(){
         return this.depts;
+    }
+
+    getNumberOfClasses(){
+        return this.numberOfClasses;
     }
 
 }
