@@ -31,7 +31,7 @@ class Data {
         const rsmt = await async_get_query("SELECT * FROM meeting_time");
         const mt = [];
         for (let i of rsmt) {
-            const meeting_time = new MeetingTime(i.id,i.day,i.start_time,i.end_time);
+            const meeting_time = new MeetingTime(i.id,i.time);
             mt.push(meeting_time);
         }
         this.meetingTimes = mt;
@@ -50,7 +50,10 @@ class Data {
         c.course_name,
         c.credits,
         c.maxNumberOfStudents,
-        GROUP_CONCAT(i.instructor_name) AS listInstructor
+        GROUP_CONCAT(json_object(
+        'id', i.id,
+        'instructor_name', i.instructor_name
+        )) AS  listInstructor
         FROM course c
         JOIN course_instructor ci ON c.id = ci.id_course
         JOIN instructor i ON ci.id_instructor = i.id
@@ -58,7 +61,11 @@ class Data {
         `);
         const c = [];
         for (let i of rsc) {
-            const course = new Course(i.id,i.course_name,i.credits,i.maxNumberOfStudents,i.listInstructor.split(','));
+            // Parse the JSON string into an array of instructor objects
+            const instructorArray = JSON.parse(`[${i.listInstructor}]`);
+            // Create an array of instructor objects
+            const instructors = instructorArray.map((instructor) => new Instructor(instructor.id, instructor.instructor_name));
+            const course = new Course(i.id,i.course_name,i.credits,i.maxNumberOfStudents,instructors);
             c.push(course);
         }
         this.courses = c;
@@ -66,7 +73,12 @@ class Data {
         const rsdept = await async_get_query(`
         SELECT
         m.major_name,
-        GROUP_CONCAT(c.course_name) AS listCourse
+        GROUP_CONCAT(json_object(
+        'id', c.id,
+        'course_name', c.course_name,
+        'credits', c.credits,
+        'maxNumberOfStudents', c.maxNumberOfStudents
+        )) AS listCourse
         FROM major m
         LEFT JOIN major_course mc ON m.id = mc.id_major
         LEFT JOIN course c ON mc.id_course = c.id
@@ -74,17 +86,21 @@ class Data {
         `);
         const dept = [];
         for (let i of rsdept) {
-            const department = new Department(i.major_name,i.listCourse.split(','));
+            // Parse the JSON string into an array of course objects
+            const courseArray = JSON.parse(`[${i.listCourse}]`);
+            // Create an array of course objects
+            const courses = courseArray.map((course) => new Course(course.id, course.course_name, course.credits, course.maxNumberOfStudents, null));
+            const department = new Department(i.major_name,courses);
             dept.push(department);
         }
         this.depts = dept;
 
         this.depts.forEach((department) => {
-            this.numberOfClasses += department.getListCourse().length;
+            this.numberOfClasses += department.getCourses().length;
           });
     }
 
-    getRoom(){
+    getRooms(){
         return this.room;
     }
 
@@ -100,7 +116,7 @@ class Data {
         return this.instructors;
     }
 
-    getDepartment(){
+    getDepts(){
         return this.depts;
     }
 

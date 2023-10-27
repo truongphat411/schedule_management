@@ -1,5 +1,4 @@
-
-
+const Schedule = require("./schedule");
 
 class Population {
     constructor(size, data) {
@@ -26,3 +25,5 @@ class Population {
         return this;
     }
 }
+
+module.exports = Population;

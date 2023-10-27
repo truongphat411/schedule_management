@@ -13,13 +13,13 @@ class Instructor {
         this.instructor_name = instructor_name;
     }
 
-    getInstructorId() {
+    getId() {
         return this.id;
       }
     
-      getInstructorName() {
-        return this.instructorName;
-      }
+    getName() {
+        return this.instructor_name;
+    }
     
    
     static create(newInstructor, cb) {

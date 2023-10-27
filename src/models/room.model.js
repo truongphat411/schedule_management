@@ -22,7 +22,7 @@ class Room {
         return this.room_name;
     }
 
-    getCapacity(){
+    getSeatingCapacity(){
         return this.capacity;
     }
    

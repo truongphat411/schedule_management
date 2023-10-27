@@ -10,7 +10,7 @@ class Department {
         return this.major_name;
       }
     
-      getListCourse() {
+      getCourses() {
         return this.listCourse;
       }
 

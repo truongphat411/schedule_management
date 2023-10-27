@@ -32,7 +32,7 @@ class Course {
         return this.maxNumberOfStudents;
     }
 
-    getListInstructor(){
+    getInstructors(){
         return this.listInstructor;
     }
 

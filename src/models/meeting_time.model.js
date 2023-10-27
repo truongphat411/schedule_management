@@ -1,23 +1,17 @@
 const db = require('../config/db.config');
 
 class MeetingTime {
-    constructor(id,day, start_time,end_time) {
+    constructor(id,time) {
         this.id = id;
-        this.day = day;
-        this.start_time = start_time;
-        this.end_time = end_time;
+        this.time = time;
     }
 
-    getDay(){
-        return this.day;
+    getId(){
+        return this.id;
     }
 
-    getStartTime(){
-        return this.start_time;
-    }
-
-    getEndTime(){
-        return this.end_time;
+    getTime(){
+        return this.time;
     }
 }
 
