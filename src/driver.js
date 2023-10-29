@@ -5,11 +5,11 @@ const GeneticAlgorithm = require("./genetic_algorithm");
 
 class Driver {
   constructor() {
-    this.POPULATION_SIZE = 9;
-    this.MUTATION_RATE = 0.1;
-    this.CROSSOVER_RATE = 0.9;
-    this.TOURNAMENT_SELECTION_SIZE = 3;
-    this.NUMB_OF_ELITE_SCHEDULES = 1;
+    this.POPULATION_SIZE = 100;
+    this.MUTATION_RATE = 0.1; // 0.01 - 0.1
+    this.CROSSOVER_RATE = 0.9; // 0.7 - 0.9 ~ 1
+    this.TOURNAMENT_SELECTION_SIZE = 3; // 2 - 5
+    this.NUMB_OF_ELITE_SCHEDULES = 1; // 1 or 2
     this.scheduleNumb = 0;
     this.classNumb = 1;
     this.data;
@@ -52,11 +52,10 @@ class Driver {
     var generationNumber = 0;
     const geneticAlgorithm = new GeneticAlgorithm(this.data,driver);
     var population = new Population(this.POPULATION_SIZE, this.data).sortByFitness();
-    this.classNumb = 1;
-    population.getSchedules().forEach(schedule => {
-      console.log(`     ${this.scheduleNumb++}     | ${schedule.toString()}  | ` +
-          `${schedule.getFitness().toFixed(5)}  |   ${schedule.getNumberOfConflicts()}`);
-    });
+    // population.getSchedules().forEach(schedule => {
+    //   console.log(`     ${this.scheduleNumb++}     | ${schedule.toString()}  | ` +
+    //       `${schedule.getFitness().toFixed(5)}  |   ${schedule.getNumberOfConflicts()}`);
+    // });
     this.printScheduleAsTable(population.getSchedules()[0], generationNumber);
     this.classNumb = 1;
 
