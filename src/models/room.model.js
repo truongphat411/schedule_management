@@ -3,15 +3,18 @@ const {
     createNewRoom: createNewRoomQuery,
     findRoomById: findRoomByIdQuery,
     updateRoomById: updateRoomByIdQuery,
-    deleteRoomById: deleteRoomByIdQuery
+    deleteRoomById: deleteRoomByIdQuery,
+    getRooms: getRoomsQuery
 } = require('../database/queries');
 const { logger } = require('../utils/logger');
 
 class Room {
-    constructor(id,room_name, capacity) {
+    constructor(id,room_name, capacity, area_id, kind_of_room_id) {
         this.id = id;
         this.room_name = room_name;
         this.capacity = capacity;
+        this.area_id = area_id;
+        this.kind_of_room_id = kind_of_room_id;
     }
 
     getRoomId() {
@@ -30,7 +33,9 @@ class Room {
         db.query(createNewRoomQuery, 
             [
                 newRoom.room_name,
-                newRoom.capacity
+                newRoom.capacity,
+                newRoom.area_id,
+                newRoom.kind_of_room_id
             ], (err, res) => {
                 if (err) {
                     logger.error(err.message);
@@ -41,6 +46,8 @@ class Room {
                     id: res.insertId,
                     room_name: newRoom.room_name,
                     capacity: newRoom.capacity,
+                    area_id: newRoom.area_id,
+                    kind_of_room_id: newRoom.kind_of_room_id
                 });
         });
     }
@@ -87,6 +94,24 @@ class Room {
                     return;
                 }
                 cb(null, {message: 'Room deleted successfully'})
+        });
+    }
+
+    static getRooms(cb) {
+        db.query(getRoomsQuery, (err, res) => {
+                if (err) {
+                    logger.error(err.message);
+                    cb(err, null);
+                    return;
+                }
+                const roomsWithParsedJSON = res.map(room => {
+                    return {
+                        ...room,
+                        area: JSON.parse(room.area),
+                        kind_of_room: JSON.parse(room.kind_of_room)
+                    };
+                });
+                cb(null, roomsWithParsedJSON);
         });
     }
 }

@@ -8,11 +8,15 @@ router.route('/create-course')
     .post(asyncHandler(courseController.create));
     
 
-router.route('/course/:id')
-    .post(authenticatateJWT, asyncHandler(courseController.create));
+router.route('/course/:courseId')
+    .get(asyncHandler(courseController.read));
 
 
-router.route('/getUserById/:id').get(authenticatateJWT, asyncHandler(courseController.getUserById));
+router.route('/update-course/:courseId')
+    .post(authenticatateJWT, asyncHandler(courseController.update));
+
+router.route('/delete-course/:courseId')
+    .post(authenticatateJWT, asyncHandler(courseController.delete));
 
 
 module.exports = router;

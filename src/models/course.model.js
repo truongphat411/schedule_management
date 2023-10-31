@@ -3,7 +3,8 @@ const {
     createNewCourse: createNewCourseQuery, 
     findCourseById: findCourseByIdQuery,
     updateCourseById: updateCourseByIdQuery,
-    deleteCourseById: deleteCourseByIdQuery
+    deleteCourseById: deleteCourseByIdQuery,
+    createNewCourseInstructor: createNewCourseInstructorQuery
     } = require('../database/queries');
 const { logger } = require('../utils/logger');
 
@@ -37,7 +38,8 @@ class Course {
     }
 
     
-    static create(newCourse, cb) {
+    static create(newCourse, major_id, cb) {
+        var course_id;
         db.query(createNewCourseQuery, 
             [
                 newCourse.course_name, 
@@ -49,11 +51,19 @@ class Course {
                     cb(err, null);
                     return;
                 }
-                cb(null, {
-                    id: res.insertId,
-                    course_name: newCourse.course_name,
-                    credits: newCourse.credits,
-                    maxNumberOfStudents: newCourse.maxNumberOfStudents
+                course_id = res.insertId,
+
+                db.query(createNewCourseInstructorQuery, 
+                    [
+                        course_id,
+                        major_id,
+                    ], (err, res) => {
+                        if (err) {
+                            logger.error(err.message);
+                            cb(err, null);
+                            return;
+                        }
+                        cb(null, {message: 'Course deleted successfully'});
                 });
         });
     }
@@ -66,7 +76,32 @@ class Course {
                     return;
                 }
                 if (res.length) {
-                    cb(null, res[0]);
+                    // Split the majorString into individual JSON objects
+                    const majorObjects = res[0].major.split("},{");
+                    
+                    // Process each major object
+                    const majorArray = majorObjects.map(majorObj => {
+                    // If it's not the first object, add '{' at the beginning
+                    if (majorObj.indexOf('{') !== 0) {
+                    majorObj = '{' + majorObj;
+                    }
+                    // If it's not the last object, add '}' at the end
+                    if (majorObj.lastIndexOf('}') !== majorObj.length - 1) {
+                    majorObj = majorObj + '}';
+                    }
+                
+                    // Now, majorObj should be a valid JSON string
+                    // You can safely parse it
+                    return JSON.parse(majorObj);
+                    });
+
+                    cb(null, {
+                        id: res[0].id,
+                        course_name: res[0].course_name,
+                        credits: res[0].credits,
+                        maxNumberOfStudents: res[0].maxNumberOfStudents,
+                        major: majorArray
+                    });
                     return;
                 }
                 cb({ kind: "not_found" }, null);

@@ -28,7 +28,19 @@ INSERT INTO course VALUES(null, ?, ?, ?)
 `;
 
 const findCourseById = `
-SELECT * FROM course WHERE id = ?
+SELECT 
+c.course_name,
+c.credits,
+c.maxNumberOfStudents, 
+GROUP_CONCAT(json_object(
+        'id', m.id,
+        'major_name', m.major_name
+        )) AS major
+FROM major_course mc
+JOIN course c ON mc.id_course = c.id
+JOIN major m ON mc.id_major = m.id
+WHERE mc.id_course = ?
+GROUP BY c.course_name
 `
 
 const updateCourseById = `
@@ -71,6 +83,29 @@ const deleteRoomById = `
 DELETE FROM room WHERE id = ?
 `
 
+const getRooms = `
+SELECT
+		r.id,
+        r.room_name,
+        r.capacity,
+        GROUP_CONCAT(json_object(
+        'id', a.id,
+        'area_name', a.area_name
+        )) AS area,
+        GROUP_CONCAT(json_object(
+        'id', k.id,
+        'kind_of_room_name', k.name
+        )) AS kind_of_room
+        FROM room r
+		JOIN area a ON r.area_id = a.id
+		JOIN kind_of_room k ON k.id = r.kind_of_room_id
+        group by r.id,r.room_name,r.capacity
+`;
+
+const createNewCourseInstructor = `
+INSERT INTO course_instructor VALUES(null, ?, ?)
+`
+
 module.exports = {
     createDB,
     dropDB,
@@ -88,5 +123,7 @@ module.exports = {
     createNewRoom,
     findRoomById,
     updateRoomById,
-    deleteRoomById
+    deleteRoomById,
+    getRooms,
+    createNewCourseInstructor
 };

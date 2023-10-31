@@ -4,6 +4,7 @@ const cors = require('cors');
 
 const authRoute = require('./src/routes/auth.route');
 const courseRoute = require('./src/routes/course.route');
+const roomRoute = require('./src/routes/room.route');
 
 const { httpLogStream } = require('./src/utils/logger');
 
@@ -17,6 +18,7 @@ app.use(cors());
 
 app.use('/api/auth', authRoute);
 app.use('/api/', courseRoute);
+app.use('/api/', roomRoute);
 
 app.get('/', (req, res) => {
     res.status(200).send({

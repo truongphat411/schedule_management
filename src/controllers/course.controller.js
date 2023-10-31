@@ -1,11 +1,11 @@
 const Course = require('../models/course.model');
 
 exports.create = (req, res) => {
-    const {course_name, credits, maxNumberOfStudents} = req.body;
+    const {course_name, credits, maxNumberOfStudents, major_id} = req.body;
 
     const course = new Course(null,course_name, credits, maxNumberOfStudents, null);
 
-    Course.create(course, (err, data) => {
+    Course.create(course, major_id, (err, data) => {
         if (err) {
             res.status(500).send({
                 status: "error",
@@ -46,6 +46,8 @@ exports.read = (req, res) => {
                 data: {
                     course_name: data.course_name,
                     credits: data.credits,
+                    maxNumberOfStudents: data.maxNumberOfStudents,
+                    major: data.major,
                 }
             });
             return;
@@ -54,9 +56,9 @@ exports.read = (req, res) => {
 }
 
 exports.update = (req, res) => {
-    const {course_name, credits} = req.body;
+    const {id,course_name, credits} = req.body;
 
-    const course = new Course(course_name, credits);
+    const course = new Course(id, course_name, credits, maxNumberOfStudents);
 
     Course.update(course, (err, data) => {
         if(err) {
