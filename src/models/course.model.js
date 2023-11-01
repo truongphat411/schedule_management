@@ -4,7 +4,8 @@ const {
     findCourseById: findCourseByIdQuery,
     updateCourseById: updateCourseByIdQuery,
     deleteCourseById: deleteCourseByIdQuery,
-    createNewCourseInstructor: createNewCourseInstructorQuery
+    createNewCourseInstructor: createNewCourseInstructorQuery,
+    getCoursesByDepartment: getCoursesByDepartmentQuery
     } = require('../database/queries');
 const { logger } = require('../utils/logger');
 
@@ -139,6 +140,28 @@ class Course {
                 cb(null, {message: 'Course deleted successfully'})
         });
     }
+
+    static getCoursesByDepartment(departmentId, cb) {
+        db.query(getCoursesByDepartmentQuery, departmentId, (err, res) => {
+                if (err) {
+                    logger.error(err.message);
+                    cb(err, null);
+                    return;
+                }
+                if (res.length) {
+                    const coursesWithParsedJSON = res.map(course => {
+                        return {
+                            ...course,
+                            major: JSON.parse(course.major),
+                        };
+                    });
+                    cb(null, coursesWithParsedJSON);
+                    return;
+                }
+                cb({ kind: "not_found" }, null);
+        });
+    }
+
 }
 
 module.exports = Course;

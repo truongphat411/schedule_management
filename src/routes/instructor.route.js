@@ -16,5 +16,8 @@ router.route('/update-instructor/:instructorId')
 router.route('/delete-instructor/:instructorId')
     .get(authenticatateJWT, asyncHandler(instructorController.delete));
 
+router.route('/instructors')
+    .get(asyncHandler(instructorController.readAll));
+
 
 module.exports = router;

@@ -18,5 +18,8 @@ router.route('/update-course/:courseId')
 router.route('/delete-course/:courseId')
     .post(authenticatateJWT, asyncHandler(courseController.delete));
 
+router.route('/courses/:departmentId')
+    .get(asyncHandler(courseController.readAllByIdDepartment));
+
 
 module.exports = router;

@@ -5,16 +5,16 @@ const { authenticatateJWT } = require('../middlewares/authenticator');
 
 
 router.route('/create-room')
-    .post(authenticatateJWT, asyncHandler(roomController.create));
+    .post(asyncHandler(roomController.create));
 
 router.route('/room/:roomId')
-    .get(authenticatateJWT, asyncHandler(roomController.read));
+    .get(asyncHandler(roomController.read));
 
 router.route('/update-room/:roomId')
-    .post(authenticatateJWT, asyncHandler(roomController.update));
+    .post(asyncHandler(roomController.update));
 
 router.route('/delete-room/:roomId')
-    .get(authenticatateJWT, asyncHandler(roomController.delete));
+    .get(asyncHandler(roomController.delete));
 
 router.route('/rooms')
     .get(asyncHandler(roomController.readAll));

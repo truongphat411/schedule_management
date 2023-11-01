@@ -109,3 +109,22 @@ exports.delete = (req, res) => {
         }
     })
 }
+
+
+exports.readAllByIdDepartment = (req, res) => {
+    const departmentId = req.params.departmentId;
+
+    Course.getCoursesByDepartment(departmentId, (err, data) => {
+        if (err) {
+            res.status(500).send({
+                status: "error",
+                message: err.message
+            });
+        } else {    
+            res.status(200).send({
+                status: "success",
+                data
+            });
+        }
+    })
+}

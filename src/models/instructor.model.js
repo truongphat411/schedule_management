@@ -4,6 +4,7 @@ const {
     findInstructorById: findInstructorByIdQuery,
     updateInstructorById: updateInstructorByIdQuery,
     deleteInstructorById: deleteInstructorById,
+    getInstructors: getInstructorsQuery
 } = require('../database/queries');
 const { logger } = require('../utils/logger');
 
@@ -79,6 +80,17 @@ class Instructor {
                     return;
                 }
                 cb(null, {message: 'Instructor deleted successfully'})
+        });
+    }
+
+    static getInstructors(cb) {
+        db.query(getInstructorsQuery, (err, res) => {
+                if (err) {
+                    logger.error(err.message);
+                    cb(err, null);
+                    return;
+                }
+                cb(null, res);
         });
     }
 }

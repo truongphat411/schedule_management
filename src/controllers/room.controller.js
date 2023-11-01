@@ -43,10 +43,7 @@ exports.read = (req, res) => {
         if(data){
             res.status(200).send({
                 status: 'success',
-                data: {
-                    room_name: data.room_name,
-                    seating_capacity: data.seating_capacity,
-                }
+                data
             });
             return;
         }
@@ -117,11 +114,9 @@ exports.readAll = (req, res) => {
                 message: err.message
             });
         } else {    
-            res.status(201).send({
+            res.status(200).send({
                 status: "success",
-                data: {
-                    data
-                }
+                data
             });
         }
     })

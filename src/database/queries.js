@@ -72,7 +72,23 @@ INSERT INTO room VALUES(null, ?, ?)
 `;
 
 const findRoomById = `
-SELECT * FROM room WHERE id = ?
+SELECT
+		r.id,
+        r.room_name,
+        r.capacity,
+        GROUP_CONCAT(json_object(
+        'id', a.id,
+        'area_name', a.area_name
+        )) AS area,
+        GROUP_CONCAT(json_object(
+        'id', k.id,
+        'kind_of_room_name', k.kind_of_room_name
+        )) AS kind_of_room
+        FROM room r
+		JOIN area a ON r.area_id = a.id
+		JOIN kind_of_room k ON k.id = r.kind_of_room_id
+        where r.id = ?
+        group by r.id,r.room_name,r.capacity
 `
 
 const updateRoomById = `
@@ -81,6 +97,13 @@ UPDATE room SET room_name = ?, capacity = ?
 
 const deleteRoomById = `
 DELETE FROM room WHERE id = ?
+`
+
+const getAreas = `
+SELECT * FROM area
+`
+const getKindOfRooms = `
+SELECT * FROM kind_of_room
 `
 
 const getRooms = `
@@ -94,7 +117,7 @@ SELECT
         )) AS area,
         GROUP_CONCAT(json_object(
         'id', k.id,
-        'kind_of_room_name', k.name
+        'kind_of_room_name', k.kind_of_room_name
         )) AS kind_of_room
         FROM room r
 		JOIN area a ON r.area_id = a.id
@@ -102,8 +125,48 @@ SELECT
         group by r.id,r.room_name,r.capacity
 `;
 
+const getCoursesByDepartment = `
+SELECT
+c.id, 
+c.course_name,
+c.credits,
+c.maxNumberOfStudents, 
+GROUP_CONCAT(json_object(
+        'id', m.id,
+        'major_name', m.major_name
+        )) AS major
+FROM major_course mc
+JOIN course c ON mc.id_course = c.id
+JOIN major m ON mc.id_major = m.id
+WHERE mc.id_major = ?
+GROUP BY c.id, c.course_name, c.credits, c.maxNumberOfStudents
+`
+
 const createNewCourseInstructor = `
 INSERT INTO course_instructor VALUES(null, ?, ?)
+`
+
+const getDepartment = `
+SELECT * FROM major
+`
+
+const getInstructors = `
+SELECT 
+i.id,
+i.instructor_name,
+i.email,
+i.number_phone,
+i.gender,
+m.major_name,
+GROUP_CONCAT(json_object(
+        'id', c.id,
+        'course_name', c.course_name
+        )) AS courses
+FROM course_instructor ci
+JOIN course c ON ci.id_course = c.id
+JOIN instructor i ON ci.id_instructor = i.id
+JOIN major m ON m.id = i.major_id
+GROUP BY i.id, i.instructor_name, i.email, i.number_phone
 `
 
 module.exports = {
@@ -125,5 +188,10 @@ module.exports = {
     updateRoomById,
     deleteRoomById,
     getRooms,
-    createNewCourseInstructor
+    createNewCourseInstructor,
+    getAreas,
+    getKindOfRooms,
+    getCoursesByDepartment,
+    getDepartment,
+    getInstructors
 };

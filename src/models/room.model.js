@@ -60,7 +60,10 @@ class Room {
                     return;
                 }
                 if (res.length) {
-                    cb(null, res[0]);
+                    const room = res[0];
+                    room.area = JSON.parse(room.area);
+                    room.kind_of_room = JSON.parse(room.kind_of_room);
+                    cb(null, room);
                     return;
                 }
                 cb({ kind: "not_found" }, null);
