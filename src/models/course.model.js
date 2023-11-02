@@ -152,13 +152,12 @@ class Course {
                     const coursesWithParsedJSON = res.map(course => {
                         return {
                             ...course,
-                            major: JSON.parse(course.major),
+                            department: JSON.parse(course.department),
                         };
                     });
                     cb(null, coursesWithParsedJSON);
                     return;
                 }
-                cb({ kind: "not_found" }, null);
         });
     }
 

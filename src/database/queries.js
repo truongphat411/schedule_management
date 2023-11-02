@@ -34,12 +34,12 @@ c.credits,
 c.maxNumberOfStudents, 
 GROUP_CONCAT(json_object(
         'id', m.id,
-        'major_name', m.major_name
+        'department_name', m.department_name
         )) AS major
 FROM major_course mc
-JOIN course c ON mc.id_course = c.id
-JOIN major m ON mc.id_major = m.id
-WHERE mc.id_course = ?
+JOIN course c ON mc.course_id = c.id
+JOIN major m ON mc.department_id = m.id
+WHERE mc.course_id = ?
 GROUP BY c.course_name
 `
 
@@ -132,13 +132,13 @@ c.course_name,
 c.credits,
 c.maxNumberOfStudents, 
 GROUP_CONCAT(json_object(
-        'id', m.id,
-        'major_name', m.major_name
-        )) AS major
-FROM major_course mc
-JOIN course c ON mc.id_course = c.id
-JOIN major m ON mc.id_major = m.id
-WHERE mc.id_major = ?
+        'id', d.id,
+        'department_name', d.department_name
+        )) AS department
+FROM department_course dc
+JOIN course c ON dc.course_id = c.id
+JOIN department d ON dc.department_id = d.id
+WHERE dc.department_id = 1
 GROUP BY c.id, c.course_name, c.credits, c.maxNumberOfStudents
 `
 
@@ -147,8 +147,29 @@ INSERT INTO course_instructor VALUES(null, ?, ?)
 `
 
 const getDepartment = `
-SELECT * FROM major
+SELECT * FROM department
 `
+
+// const getInstructors = `
+// SELECT 
+// i.id,
+// i.instructor_name,
+// i.email,
+// i.number_phone,
+// i.gender,
+// m.department_name,
+// GROUP_CONCAT(json_object(
+//         'id', c.id,
+//         'course_name', c.course_name,
+//         'credits', c.credits,
+//         'maxNumberOfStudents', c.maxNumberOfStudents
+//         )) AS courses
+// FROM course_instructor ci
+// JOIN course c ON ci.course_id = c.id
+// JOIN instructor i ON ci.instructor_id = i.id
+// JOIN department m ON m.id = i.department_id
+// GROUP BY i.id, i.instructor_name, i.email, i.number_phone
+// `
 
 const getInstructors = `
 SELECT 
@@ -157,16 +178,13 @@ i.instructor_name,
 i.email,
 i.number_phone,
 i.gender,
-m.major_name,
-GROUP_CONCAT(json_object(
-        'id', c.id,
-        'course_name', c.course_name
-        )) AS courses
+m.department_name,
+c.course_name
 FROM course_instructor ci
-JOIN course c ON ci.id_course = c.id
-JOIN instructor i ON ci.id_instructor = i.id
-JOIN major m ON m.id = i.major_id
-GROUP BY i.id, i.instructor_name, i.email, i.number_phone
+JOIN course c ON ci.course_id = c.id
+JOIN instructor i ON ci.instructor_id = i.id
+JOIN department m ON m.id = i.department_id
+GROUP BY i.id, i.instructor_name, i.email, i.number_phone, m.department_name, c.course_name
 `
 
 module.exports = {

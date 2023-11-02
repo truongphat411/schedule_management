@@ -90,7 +90,17 @@ class Instructor {
                     cb(err, null);
                     return;
                 }
-                cb(null, res);
+                if(res.length){
+                    // const instructorWithParsedJSON = res.map(instructor => {
+                    //     return {
+                    //         ...instructor,
+                    //         courses: JSON.parse(instructor.courses),
+                    //     };
+                    // });
+                    cb(null, res);
+                    return;
+                }
+                
         });
     }
 }

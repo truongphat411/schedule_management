@@ -1,6 +1,8 @@
 const Data = require("./data");
 const Population = require("./population");
 const GeneticAlgorithm = require("./genetic_algorithm");
+const db = require('./config/db.config');
+const util = require('util');
 
 
 class Driver {
@@ -52,29 +54,23 @@ class Driver {
     var generationNumber = 0;
     const geneticAlgorithm = new GeneticAlgorithm(this.data,driver);
     var population = new Population(this.POPULATION_SIZE, this.data).sortByFitness();
-    // population.getSchedules().forEach(schedule => {
-    //   console.log(`     ${this.scheduleNumb++}     | ${schedule.toString()}  | ` +
-    //       `${schedule.getFitness().toFixed(5)}  |   ${schedule.getNumberOfConflicts()}`);
-    // });
     this.printScheduleAsTable(population.getSchedules()[0], generationNumber);
     this.classNumb = 1;
+    let lastSchedule = null;
 
     while (population.getSchedules()[0].getFitness() !== 1.0) {
       ++generationNumber;
-      console.log(`> Generation # ${++generationNumber}`);
-      console.log('     Schedule # |                                   ');
-      console.log('Classes [dept,class,room,instructor,meeting.time]    ');
-      console.log('                              | Fitness | Conflicts');
-      console.log('......................................................................');
-      console.log('...........................................................................');
-  
       population = geneticAlgorithm.evolve(population).sortByFitness();
       this.scheduleNumb = 0;
       this.printScheduleAsTable(population.getSchedules()[0], generationNumber);
       this.classNumb = 1;
-  }
+    }
 
+    if(population.getSchedules()[0].getFitness() === 1.0) {
+      lastSchedule = population.getSchedules()[0].getClasses();
+    }
 
+    return lastSchedule;
   }
 
   async printScheduleAsTable (schedule , generation) {
@@ -97,32 +93,20 @@ class Driver {
           listCourseName.push(name);
         }
         for(let i of majors){
-          var name = i.major_name;
+          var name = i.department_name;
           listMajorName.push(name);
         }
         for(let i of instructor){
           var name = i.instructor_name;
           listInstructorName.push(name);
         }
-        const majorIndex = listMajorName.indexOf(x.getDept().major_name);
+        const majorIndex = listMajorName.indexOf(x.getDept().department_name);
         const coursesIndex = listCourseName.indexOf(x.getCourse().course_name);
         const roomsIndex = this.data.getRooms().indexOf(x.getRoom());
         const instructorsIndex = listInstructorName.indexOf(x.getInstructor().instructor_name);
         const meetingTimeIndex = this.data.getMeetingTimes().indexOf(x.getMeetingTime());
-      //  const deptName = "";
-      //   for (let i = 0; i < this.data.getDepts().length; i++) {
-      //     const course = this.data.getCourses()[coursesIndex];
-      //     var dept = new Department();
-      //     dept = this.data.getDepts()[i];
-      //     const foundCourse = dept.getCourses().find(c => c.equals(course));
-      //     if (foundCourse) {
-      //         deptName = dept.getMajorName();
-      //         break;
-      //     }
-      // }
-        //console.log("                     ");
         console.log(`\n  ${this.classNumb.toString().padStart(2, ' ')}  |  ` +
-      `${this.data.getDepts()[majorIndex].major_name.toString().padStart(4, ' ')}  |  ` +
+      `${this.data.getDepts()[majorIndex].department_name.toString().padStart(4, ' ')}  |  ` +
       `${(this.data.getCourses()[coursesIndex].course_name + " (" + this.data.getCourses()[coursesIndex].credits + ", " + 
       this.data.getCourses()[coursesIndex].maxNumberOfStudents).padEnd(21, ' ') + ")"}  |  ` +
       `${(this.data.getRooms()[roomsIndex].room_name + " ( " + this.data.getRooms()[roomsIndex].capacity).padEnd(10, ' ')+ ")"}  |  ` +
@@ -175,6 +159,15 @@ class Driver {
     console.log("...........................................................................................");
     console.log("...........................................................................................");
   }
+
+  async async_get_query(sql_query) {
+    return util.promisify(db.query).call(db, sql_query);
+  } 
+
+  async async_push_query(sql_query, info) {
+      return util.promisify(db.query).call(db, sql_query, info);
+  }
+  
 }
 
 // // Entry point

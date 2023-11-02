@@ -23,27 +23,17 @@ class Schedule{
                 newClass.setRoom(this.data.getRooms()[Math.floor(Math.random() * this.data.getRooms().length)]);
                 newClass.setInstructor(course.getInstructors()[Math.floor(Math.random() * course.getInstructors().length)]);
                 this.classes.push(newClass);
+                if(course.credits == 3){
+                  const newClass = new Class(this.classNumb++, dept, course);
+                  newClass.setMeetingTime(this.data.getMeetingTimes()[Math.floor(Math.random() * this.data.getMeetingTimes().length)]);
+                  newClass.setRoom(this.data.getRooms()[Math.floor(Math.random() * this.data.getRooms().length)]);
+                  newClass.setInstructor(course.getInstructors()[Math.floor(Math.random() * course.getInstructors().length)]);
+                  this.classes.push(newClass);
+                }
             });
         });
         return this;
     }
-
-    // initialize() {      
-    //   this.data.getDepts().forEach(dept => {
-    //       dept.getCourses().forEach(course => {
-    //         course.getInstructors().forEach(instructor => {
-    //           const newClass = new Class(this.classNumb++, dept, course, instructor);
-    //           newClass.setMeetingTime(this.data.getMeetingTimes()[Math.floor(Math.random() * this.data.getMeetingTimes().length)]);
-    //           newClass.setRoom(this.data.getRooms()[Math.floor(Math.random() * this.data.getRooms().length)]);
-    //           //newClass.setInstructor(this.data.getInstructors()[Math.floor(Math.random() * this.data.getInstructors().length)]);
-    //           this.classes.push(newClass);
-    //         });
-    //       });
-    //   });
-  
-    //   return this;
-    // }
-
     getNumberOfConflicts() {
         return this.numbOfConflicts;
     }

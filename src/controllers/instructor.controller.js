@@ -43,9 +43,7 @@ exports.read = (req, res) => {
         if(data){
             res.status(200).send({
                 status: 'success',
-                data: {
-                    instructor_name: data.instructor_name,
-                }
+                data
             });
             return;
         }

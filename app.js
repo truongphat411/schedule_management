@@ -9,6 +9,7 @@ const roomRoute = require('./src/routes/room.route');
 const areaRoute = require('./src/routes/area.route');
 const kindOfRoomRoute = require('./src/routes/kind_of_room.route');
 const departmentRoute = require('./src/routes/department.route');
+const classRoute = require('./src/routes/class.route');
 
 const { httpLogStream } = require('./src/utils/logger');
 
@@ -27,6 +28,7 @@ app.use('/api/', roomRoute);
 app.use('/api/', areaRoute);
 app.use('/api/', kindOfRoomRoute);
 app.use('/api/', departmentRoute);
+app.use('/api/', classRoute);
 
 app.get('/', (req, res) => {
     res.status(200).send({

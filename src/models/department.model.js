@@ -4,13 +4,13 @@ const {
   } = require('../database/queries');
 
 class Department {
-    constructor(major_name,listCourse) {
-        this.major_name = major_name;
-    this.listCourse = listCourse;
+    constructor(department_name,courses) {
+        this.department_name = department_name;
+    this.listCourse = courses;
     }
 
-      getMajorName() {
-        return this.major_name;
+      getDepartmentName() {
+        return this.department_name;
       }
     
       getCourses() {
