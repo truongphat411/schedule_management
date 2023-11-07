@@ -54,7 +54,7 @@ class Driver {
     var generationNumber = 0;
     const geneticAlgorithm = new GeneticAlgorithm(this.data,driver);
     var population = new Population(this.POPULATION_SIZE, this.data).sortByFitness();
-    this.printScheduleAsTable(population.getSchedules()[0], generationNumber);
+    //this.printScheduleAsTable(population.getSchedules()[0], generationNumber);
     this.classNumb = 1;
     let lastSchedule = null;
 
@@ -62,7 +62,7 @@ class Driver {
       ++generationNumber;
       population = geneticAlgorithm.evolve(population).sortByFitness();
       this.scheduleNumb = 0;
-      this.printScheduleAsTable(population.getSchedules()[0], generationNumber);
+      //this.printScheduleAsTable(population.getSchedules()[0], generationNumber);
       this.classNumb = 1;
     }
 
@@ -84,7 +84,7 @@ class Driver {
       classes.forEach(x => {
         const listCourseName = [];
         const courses = this.data.getCourses();
-        const listMajorName = [];
+        const listDepartmentName = [];
         const majors = this.data.getDepts();
         const listInstructorName = [];
         const instructor = this.data.getInstructors();
@@ -94,19 +94,19 @@ class Driver {
         }
         for(let i of majors){
           var name = i.department_name;
-          listMajorName.push(name);
+          listDepartmentName.push(name);
         }
         for(let i of instructor){
           var name = i.instructor_name;
           listInstructorName.push(name);
         }
-        const majorIndex = listMajorName.indexOf(x.getDept().department_name);
+        const departmentIndex = listDepartmentName.indexOf(x.getDept().department_name);
         const coursesIndex = listCourseName.indexOf(x.getCourse().course_name);
         const roomsIndex = this.data.getRooms().indexOf(x.getRoom());
         const instructorsIndex = listInstructorName.indexOf(x.getInstructor().instructor_name);
         const meetingTimeIndex = this.data.getMeetingTimes().indexOf(x.getMeetingTime());
         console.log(`\n  ${this.classNumb.toString().padStart(2, ' ')}  |  ` +
-      `${this.data.getDepts()[majorIndex].department_name.toString().padStart(4, ' ')}  |  ` +
+      `${this.data.getDepts()[departmentIndex].department_name.toString().padStart(4, ' ')}  |  ` +
       `${(this.data.getCourses()[coursesIndex].course_name + " (" + this.data.getCourses()[coursesIndex].credits + ", " + 
       this.data.getCourses()[coursesIndex].maxNumberOfStudents).padEnd(21, ' ') + ")"}  |  ` +
       `${(this.data.getRooms()[roomsIndex].room_name + " ( " + this.data.getRooms()[roomsIndex].capacity).padEnd(10, ' ')+ ")"}  |  ` +

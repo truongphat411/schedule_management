@@ -55,8 +55,8 @@ class Data {
         'instructor_name', i.instructor_name
         )) AS  listInstructor
         FROM course c
-        JOIN course_instructor ci ON c.id = ci.id_course
-        JOIN instructor i ON ci.id_instructor = i.id
+        JOIN course_instructor ci ON c.id = ci.course_id
+        JOIN instructor i ON ci.instructor_id = i.id
         GROUP BY c.id, c.course_name, c.credits, c.maxNumberOfStudents
         `);
         const c = [];
@@ -72,17 +72,17 @@ class Data {
 
         const rsdept = await async_get_query(`
         SELECT
-        m.major_name,
+        d.department_name,
         GROUP_CONCAT(json_object(
         'id', c.id,
         'course_name', c.course_name,
         'credits', c.credits,
         'maxNumberOfStudents', c.maxNumberOfStudents
         )) AS listCourse
-        FROM major m
-        LEFT JOIN major_course mc ON m.id = mc.id_major
-        LEFT JOIN course c ON mc.id_course = c.id
-        GROUP BY m.major_name
+        FROM department d
+        LEFT JOIN department_course dc ON d.id = dc.department_id
+        LEFT JOIN course c ON dc.course_id = c.id
+        GROUP BY d.department_name
         `);
         const dept = [];
         for (let i of rsdept) {
