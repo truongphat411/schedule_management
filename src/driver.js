@@ -47,10 +47,10 @@ class Driver {
 
 
 
-  async main() {
+  async main(department_id, semester_id) {
     this.data = new Data();
     const driver = new Driver();
-    await this.data.initialize();
+    await this.data.initialize(department_id, semester_id);
     var generationNumber = 0;
     const geneticAlgorithm = new GeneticAlgorithm(this.data,driver);
     var population = new Population(this.POPULATION_SIZE, this.data).sortByFitness();
@@ -68,6 +68,15 @@ class Driver {
 
     if(population.getSchedules()[0].getFitness() === 1.0) {
       lastSchedule = population.getSchedules()[0].getClasses();
+      await this.async_push_query(`
+        DELETE FROM class 
+        WHERE course_id IN (
+          SELECT c.id 
+          FROM course c 
+          JOIN department_course dc ON c.id = dc.course_id
+          WHERE c.semester_id = ? AND dc.department_id = ?
+        );
+        `, [department_id,semester_id]);
       for(let i of lastSchedule){
         await this.async_push_query("INSERT INTO class SET ?",{
           course_id: i.course.id,

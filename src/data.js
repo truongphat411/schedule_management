@@ -19,7 +19,7 @@ class Data {
     }
 
 
-    async initialize() {
+    async initialize(department_id, semester_id) {
         //// Room
         const rsr = await async_get_query("SELECT * FROM room");
         const r = [];
@@ -78,7 +78,7 @@ class Data {
         }
         this.courses = c;
 
-        const rsdept = await async_get_query(`
+        const rsdept = await async_push_query(`
         SELECT
         d.department_name,
         GROUP_CONCAT(json_object(
@@ -90,9 +90,9 @@ class Data {
         FROM department d
         LEFT JOIN department_course dc ON d.id = dc.department_id
         LEFT JOIN course c ON dc.course_id = c.id
-        WHERE d.id = 1 AND c.semester_id = 1
+        WHERE d.id = ? AND c.semester_id = ?
         GROUP BY d.department_name
-        `);
+        `, [department_id, semester_id]);
         const dept = [];
         for (let i of rsdept) {
             // Parse the JSON string into an array of course objects

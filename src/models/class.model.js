@@ -1,4 +1,8 @@
 const db = require('../config/db.config');
+const { 
+    createNewCourse: createNewCourseQuery
+    } = require('../database/queries');
+const { logger } = require('../utils/logger');
 
 class Class {
     constructor(id, department, course) {
@@ -45,7 +49,6 @@ class Class {
     getRoom() {
     return this.room;
     }
-
 }
 
 module.exports = Class;
