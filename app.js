@@ -128,15 +128,21 @@ app.get('/generate-docx', async (req, res) => {
       transporter.sendMail(mailOptions, function(error, info){
         if (error) {
           console.log(error);
+          res.status(401).send({
+            message: error.message
+          });
         } else {
           console.log('Email sent: ' + info.response);
+          res.status(200).send({
+            message: info.messageId
+          })
         }
       });
   
-    const file = `src/uploads/output.docx`;
+    // const file = `src/uploads/output.docx`;
 
-    // Send a success response or do other processing as needed
-    res.download(file);
+    // // Send a success response or do other processing as needed
+    // res.download(file);
   });
 
 
