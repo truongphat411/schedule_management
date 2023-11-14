@@ -68,6 +68,15 @@ class Driver {
 
     if(population.getSchedules()[0].getFitness() === 1.0) {
       lastSchedule = population.getSchedules()[0].getClasses();
+      for(let i of lastSchedule){
+        await this.async_push_query("INSERT INTO class SET ?",{
+          course_id: i.course.id,
+          instructor_id: i.instructor.id,
+          room_id: i.room.id,
+          meeting_time_id: i.meetingTime.id
+        });
+      }
+      console.log("success");
     }
 
     return lastSchedule;
@@ -170,7 +179,7 @@ class Driver {
   
 }
 
-// // Entry point
+// Entry point
 // const driver = new Driver();
 // driver.printAvailableData();
 

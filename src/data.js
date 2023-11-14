@@ -5,6 +5,7 @@ const Room = require('./models/room.model');
 const MeetingTime = require('./models/meeting_time.model');
 const Instructor = require('./models/instructor.model');
 const Department = require('./models/department.model');
+const Semester = require('./models/semester.model');
 
 class Data {
 
@@ -51,12 +52,17 @@ class Data {
         c.credits,
         c.maxNumberOfStudents,
         GROUP_CONCAT(json_object(
+        'id', s.id,
+        'semester_name', s.semester_name
+        )) AS  semester,
+        GROUP_CONCAT(json_object(
         'id', i.id,
         'instructor_name', i.instructor_name
         )) AS  listInstructor
         FROM course c
         JOIN course_instructor ci ON c.id = ci.course_id
         JOIN instructor i ON ci.instructor_id = i.id
+        JOIN semester s ON c.semester_id = s.id
         GROUP BY c.id, c.course_name, c.credits, c.maxNumberOfStudents
         `);
         const c = [];
@@ -65,7 +71,9 @@ class Data {
             const instructorArray = JSON.parse(`[${i.listInstructor}]`);
             // Create an array of instructor objects
             const instructors = instructorArray.map((instructor) => new Instructor(instructor.id, instructor.instructor_name));
-            const course = new Course(i.id,i.course_name,i.credits,i.maxNumberOfStudents,instructors);
+            const semesterArray = JSON.parse(`[${i.semester}]`);
+            const semesters = semesterArray.map((semester) => new Semester(semester.id, semester.semester_name));
+            const course = new Course(i.id,i.course_name,i.credits,i.maxNumberOfStudents,semesters,instructors);
             c.push(course);
         }
         this.courses = c;
@@ -82,6 +90,7 @@ class Data {
         FROM department d
         LEFT JOIN department_course dc ON d.id = dc.department_id
         LEFT JOIN course c ON dc.course_id = c.id
+        WHERE d.id = 1 AND c.semester_id = 1
         GROUP BY d.department_name
         `);
         const dept = [];
@@ -93,13 +102,13 @@ class Data {
             for (let x of courseArray) {
                 for(let y of this.courses){
                     if(x.id === y.id){
-                        const course = new Course(x.id, x.course_name, x.credits, x.maxNumberOfStudents, y.instructors);
+                        const course = new Course(x.id, x.course_name, x.credits, x.maxNumberOfStudents, y.semester,y.instructors);
                         courses.push(course);
                     }
                 }
             }
             // const courses = courseArray.map((course) => new Course(course.id, course.course_name, course.credits, course.maxNumberOfStudents, null));
-            const department = new Department(i.major_name,courses);
+            const department = new Department(i.department_name,courses);
             dept.push(department);
         }
         this.depts = dept;
