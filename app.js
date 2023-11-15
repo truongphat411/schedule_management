@@ -50,7 +50,7 @@ app.get('/', (req, res) => {
 
 app.get('/generate-docx', async (req, res) => {
     const content = fs.readFileSync(
-        path.resolve("src/uploads", "expected-empty-table.docx"),
+        path.resolve("src/uploads", "thumoigiang.docx"),
         "binary"
     );
 
@@ -61,14 +61,16 @@ app.get('/generate-docx', async (req, res) => {
     linebreaks: true,
     });
 
-    const classes = await util.promisify(db.query).call(db, `
+    const data = await util.promisify(db.query).call(db, `
     SELECT
-    	cl.id,
-        c.course_name,
-        i.instructor_name,
-        r.room_name,
-        mt.time,
-        d.department_name
+    cl.id,
+      c.course_name,
+      c.credits,
+      c.maxNumberOfStudents,
+      i.instructor_name,
+      r.room_name,
+      mt.time,
+      d.department_name
     FROM
         class cl
     JOIN course c ON cl.course_id = c.id
@@ -79,17 +81,31 @@ app.get('/generate-docx', async (req, res) => {
     JOIN room r ON cl.room_id = r.id
     WHERE i.id = 2
     `);
+    var stt = 0;
 
-    const data = classes.map(cl => ({
+    const classes = [];
+for (let i = 0; i < data.length; i++) {
+    const cl = data[i];
+    ++stt;
+    classes.push({
+        stt: stt,
         id: cl.id,
         course_name: cl.course_name,
         instructor_name: cl.instructor_name,
         room_name: cl.room_name,
-        time: cl.time, 
-        department_name: cl.department_name
-    }));
+        credits: cl.credits,
+        maxNumberOfStudents: cl.maxNumberOfStudents
+    });
+}
 
-    const dataClass = { classes };
+    // const data = classes.map(cl => ({
+    //     id: cl.id,
+    //     course_name: cl.course_name,
+    //     instructor_name: cl.instructor_name,
+    //     room_name: cl.room_name
+    // }));
+
+    const dataClass = { classes , instructor_name: 'Nguyễn Mai Trường Phát'};
     
 
     doc.render(dataClass);
@@ -101,48 +117,48 @@ app.get('/generate-docx', async (req, res) => {
     compression: "DEFLATE",
     });
 
-    //fs.writeFileSync(path.resolve("src/uploads", "output.docx"), buf);
+    fs.writeFileSync(path.resolve("src/uploads", "output.docx"), buf);
 
 
-    var transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-          user: 'nguyenmaitruongphat@gmail.com',
-          pass: 'Phat@123456'
-        }
-      });
+    // var transporter = nodemailer.createTransport({
+    //     service: 'gmail',
+    //     auth: {
+    //       user: 'nguyenmaitruongphat@gmail.com',
+    //       pass: 'Phat@123456'
+    //     }
+    //   });
       
-      var mailOptions = {
-        from: 'nguyenmaitruongphat@gmail.com',
-        to: 'phatnmt@ominext.com',
-        subject: 'Sending Email using Node.js',
-        text: 'That was easy!',
-        attachments: [
-            {
-              filename: 'output.docx',
-              content: buf,
-            },
-          ],
-      };
+    //   var mailOptions = {
+    //     from: 'nguyenmaitruongphat@gmail.com',
+    //     to: 'phatnmt@ominext.com',
+    //     subject: 'Sending Email using Node.js',
+    //     text: 'That was easy!',
+    //     attachments: [
+    //         {
+    //           filename: 'output.docx',
+    //           content: buf,
+    //         },
+    //       ],
+    //   };
 
-      transporter.sendMail(mailOptions, function(error, info){
-        if (error) {
-          console.log(error);
-          res.status(401).send({
-            message: error.message
-          });
-        } else {
-          console.log('Email sent: ' + info.response);
-          res.status(200).send({
-            message: info.messageId
-          })
-        }
-      });
+    //   transporter.sendMail(mailOptions, function(error, info){
+    //     if (error) {
+    //       console.log(error);
+    //       res.status(401).send({
+    //         message: error.message
+    //       });
+    //     } else {
+    //       console.log('Email sent: ' + info.response);
+    //       res.status(200).send({
+    //         message: info.messageId
+    //       })
+    //     }
+    //   });
   
-    // const file = `src/uploads/output.docx`;
+    const file = `src/uploads/output.docx`;
 
-    // // Send a success response or do other processing as needed
-    // res.download(file);
+    // Send a success response or do other processing as needed
+    res.download(file);
   });
 
 
