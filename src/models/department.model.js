@@ -4,9 +4,10 @@ const {
   } = require('../database/queries');
 
 class Department {
-    constructor(department_name,courses) {
-        this.department_name = department_name;
-    this.listCourse = courses;
+    constructor(id,department_name,courses) {
+      this.id = id;
+      this.department_name = department_name;
+      this.listCourse = courses;
     }
 
       getDepartmentName() {

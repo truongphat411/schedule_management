@@ -82,7 +82,8 @@ class Driver {
           course_id: i.course.id,
           instructor_id: i.instructor.id,
           room_id: i.room.id,
-          meeting_time_id: i.meetingTime.id
+          meeting_time_id: i.meetingTime.id,
+          department_id: i.department.id
         });
       }
       console.log("success");

@@ -49,117 +49,120 @@ app.get('/', (req, res) => {
 
 
 app.get('/generate-docx', async (req, res) => {
-    const content = fs.readFileSync(
-        path.resolve("src/uploads", "thumoigiang.docx"),
-        "binary"
-    );
 
-    const zip = new PizZip(content);
+    // Extract the raw value of the "ids" query parameter
+    const rawIds = req.query.ids;
 
-    const doc = new Docxtemplater(zip, {
-    paragraphLoop: true,
-    linebreaks: true,
-    });
+    // Remove square brackets from the string (if they exist)
+    const cleanedIds = rawIds.replace(/\[|\]/g, '');
 
-    const data = await util.promisify(db.query).call(db, `
-    SELECT
-    cl.id,
-      c.course_name,
-      c.credits,
-      c.maxNumberOfStudents,
-      i.instructor_name,
-      r.room_name,
-      mt.time,
-      d.department_name
-    FROM
-        class cl
-    JOIN course c ON cl.course_id = c.id
-    JOIN instructor i ON cl.instructor_id = i.id
-    JOIN semester s ON c.semester_id = s.id
-    JOIN department d ON cl.department_id = d.id
-    JOIN meeting_time mt ON cl.meeting_time_id = mt.id
-    JOIN room r ON cl.room_id = r.id
-    WHERE i.id = 2
-    `);
-    var stt = 0;
+    // Split the cleaned string into an array of integers
+    const ids = cleanedIds.split(',').map(Number);
 
-    const classes = [];
-for (let i = 0; i < data.length; i++) {
-    const cl = data[i];
-    ++stt;
-    classes.push({
-        stt: stt,
-        id: cl.id,
-        course_name: cl.course_name,
-        instructor_name: cl.instructor_name,
-        room_name: cl.room_name,
-        credits: cl.credits,
-        maxNumberOfStudents: cl.maxNumberOfStudents
-    });
-}
 
-    // const data = classes.map(cl => ({
-    //     id: cl.id,
-    //     course_name: cl.course_name,
-    //     instructor_name: cl.instructor_name,
-    //     room_name: cl.room_name
-    // }));
+    console.log('PhatNMT', ids);
+    for (let i = 0; i < ids.length; i++){
 
-    const dataClass = { classes , instructor_name: 'Nguyễn Mai Trường Phát'};
+        const content = fs.readFileSync(
+            path.resolve("src/uploads", "thumoigiang.docx"),
+            "binary"
+        );
     
+        const zip = new PizZip(content);
+    
+        const doc = new Docxtemplater(zip, {
+        paragraphLoop: true,
+        linebreaks: true,
+        });
+    
+        const data = await util.promisify(db.query).call(db, `
+        SELECT
+        cl.id,
+          c.course_name,
+          c.credits,
+          c.maxNumberOfStudents,
+          i.instructor_name,
+          r.room_name,
+          mt.time,
+          d.department_name,
+          i.email
+        FROM
+            class cl
+        JOIN course c ON cl.course_id = c.id
+        JOIN instructor i ON cl.instructor_id = i.id
+        JOIN semester s ON c.semester_id = s.id
+        JOIN department d ON cl.department_id = d.id
+        JOIN meeting_time mt ON cl.meeting_time_id = mt.id
+        JOIN room r ON cl.room_id = r.id
+        WHERE i.id = ?
+        `,ids[i]);
+        var stt = 0;
+    
+        const classes = [];
+    for (let i = 0; i < data.length; i++) {
+        const cl = data[i];
+        ++stt;
+        classes.push({
+            stt: stt,
+            id: cl.id,
+            course_name: cl.course_name,
+            instructor_name: cl.instructor_name,
+            room_name: cl.room_name,
+            credits: cl.credits,
+            maxNumberOfStudents: cl.maxNumberOfStudents,
+            email: cl.email
+        });
+    }
 
-    doc.render(dataClass);
-
-    const buf = doc.getZip().generate({
-    type: "nodebuffer",
-    // compression: DEFLATE adds a compression step.
-    // For a 50MB output document, expect 500ms additional CPU time
-    compression: "DEFLATE",
-    });
-
-    fs.writeFileSync(path.resolve("src/uploads", "output.docx"), buf);
-
-
-    // var transporter = nodemailer.createTransport({
-    //     service: 'gmail',
-    //     auth: {
-    //       user: 'nguyenmaitruongphat@gmail.com',
-    //       pass: 'Phat@123456'
-    //     }
-    //   });
-      
-    //   var mailOptions = {
-    //     from: 'nguyenmaitruongphat@gmail.com',
-    //     to: 'phatnmt@ominext.com',
-    //     subject: 'Sending Email using Node.js',
-    //     text: 'That was easy!',
-    //     attachments: [
-    //         {
-    //           filename: 'output.docx',
-    //           content: buf,
-    //         },
-    //       ],
-    //   };
-
-    //   transporter.sendMail(mailOptions, function(error, info){
-    //     if (error) {
-    //       console.log(error);
-    //       res.status(401).send({
-    //         message: error.message
-    //       });
-    //     } else {
-    //       console.log('Email sent: ' + info.response);
-    //       res.status(200).send({
-    //         message: info.messageId
-    //       })
-    //     }
-    //   });
-  
-    const file = `src/uploads/output.docx`;
-
-    // Send a success response or do other processing as needed
-    res.download(file);
-  });
+        var instructor_name = classes[0].instructor_name;
+        var email = classes[0].email;
+    
+        const dataClass = { classes , instructor_name: instructor_name};
+        
+    
+        doc.render(dataClass);
+    
+        const buf = doc.getZip().generate({
+        type: "nodebuffer",
+        compression: "DEFLATE",
+        });
+    
+        var transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+              user: 'nguyenmaitruongphat@gmail.com',
+              pass: 'kirc uswj lhrm sopo'
+            }
+          });
+          
+          var mailOptions = {
+            from: 'nguyenmaitruongphat@gmail.com',
+            to: email,
+            subject: 'Sending Email using Node.js',
+            text: 'That was easy!',
+            attachments: [
+                {
+                  filename: 'thumoigiang.docx',
+                  content: buf,
+                },
+              ],
+          };
+    
+          transporter.sendMail(mailOptions, function(error, info){
+            if (error) {
+              console.log(error);
+              res.status(401).send({
+                message: error.message
+              });
+            } else {
+              console.log('Email sent: ' + info.response);
+              res.status(200).send({
+                message: info.messageId
+              })
+            }
+          });
+    }
+});
 
 
 app.use((err, req, res, next) => {

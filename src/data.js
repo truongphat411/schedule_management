@@ -80,6 +80,7 @@ class Data {
 
         const rsdept = await async_push_query(`
         SELECT
+        d.id,
         d.department_name,
         GROUP_CONCAT(json_object(
         'id', c.id,
@@ -91,7 +92,7 @@ class Data {
         LEFT JOIN department_course dc ON d.id = dc.department_id
         LEFT JOIN course c ON dc.course_id = c.id
         WHERE d.id = ? AND c.semester_id = ?
-        GROUP BY d.department_name
+        GROUP BY d.id, d.department_name
         `, [department_id, semester_id]);
         const dept = [];
         for (let i of rsdept) {
@@ -108,7 +109,7 @@ class Data {
                 }
             }
             // const courses = courseArray.map((course) => new Course(course.id, course.course_name, course.credits, course.maxNumberOfStudents, null));
-            const department = new Department(i.department_name,courses);
+            const department = new Department(i.id,i.department_name,courses);
             dept.push(department);
         }
         this.depts = dept;
