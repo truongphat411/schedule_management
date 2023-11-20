@@ -18,6 +18,7 @@ const areaRoute = require('./src/routes/area.route');
 const kindOfRoomRoute = require('./src/routes/kind_of_room.route');
 const departmentRoute = require('./src/routes/department.route');
 const classRoute = require('./src/routes/class.route');
+const semesterRoute = require('./src/routes/semester.route');
 
 const { httpLogStream } = require('./src/utils/logger');
 
@@ -37,6 +38,7 @@ app.use('/api/', areaRoute);
 app.use('/api/', kindOfRoomRoute);
 app.use('/api/', departmentRoute);
 app.use('/api/', classRoute);
+app.use('/api/', semesterRoute);
 
 app.get('/', (req, res) => {
     res.status(200).send({
@@ -48,7 +50,7 @@ app.get('/', (req, res) => {
 });
 
 
-app.get('/generate-docx', async (req, res) => {
+app.get('/api/generate-docx', async (req, res) => {
 
     // Extract the raw value of the "ids" query parameter
     const rawIds = req.query.ids;
@@ -99,6 +101,7 @@ app.get('/generate-docx', async (req, res) => {
         var stt = 0;
     
         const classes = [];
+
     for (let i = 0; i < data.length; i++) {
         const cl = data[i];
         ++stt;
@@ -138,8 +141,8 @@ app.get('/generate-docx', async (req, res) => {
           var mailOptions = {
             from: 'nguyenmaitruongphat@gmail.com',
             to: email,
-            subject: 'Sending Email using Node.js',
-            text: 'That was easy!',
+            subject: 'Thư mời giảng',
+            text: 'Nhà trường xin phép gửi thư mời giảng đến giảng viên: ' + instructor_name,
             attachments: [
                 {
                   filename: 'thumoigiang.docx',

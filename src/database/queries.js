@@ -150,26 +150,23 @@ const getDepartment = `
 SELECT * FROM department
 `
 
-// const getInstructors = `
-// SELECT 
-// i.id,
-// i.instructor_name,
-// i.email,
-// i.number_phone,
-// i.gender,
-// m.department_name,
-// GROUP_CONCAT(json_object(
-//         'id', c.id,
-//         'course_name', c.course_name,
-//         'credits', c.credits,
-//         'maxNumberOfStudents', c.maxNumberOfStudents
-//         )) AS courses
-// FROM course_instructor ci
-// JOIN course c ON ci.course_id = c.id
-// JOIN instructor i ON ci.instructor_id = i.id
-// JOIN department m ON m.id = i.department_id
-// GROUP BY i.id, i.instructor_name, i.email, i.number_phone
-// `
+const getInstructorsFromTimeTable = `
+SELECT 
+i.id,
+i.instructor_name,
+i.email,
+i.number_phone,
+i.gender,
+d.department_name,
+c.course_name
+FROM class cl, course_instructor ci
+JOIN course c ON ci.course_id = c.id
+JOIN instructor i ON ci.instructor_id = i.id
+JOIN department d ON d.id = i.department_id
+JOIN semester s ON s.id = c.semester_id
+WHERE d.id = ? AND s.id = ?
+GROUP BY i.id, i.instructor_name, i.email, i.number_phone, d.department_name, c.course_name
+`
 
 const getInstructors = `
 SELECT 
@@ -185,6 +182,10 @@ JOIN course c ON ci.course_id = c.id
 JOIN instructor i ON ci.instructor_id = i.id
 JOIN department m ON m.id = i.department_id
 GROUP BY i.id, i.instructor_name, i.email, i.number_phone, m.department_name, c.course_name
+`
+
+const getSemesters = `
+SELECT * FROM semester
 `
 
 module.exports = {
@@ -211,5 +212,7 @@ module.exports = {
     getKindOfRooms,
     getCoursesByDepartment,
     getDepartment,
-    getInstructors
+    getInstructors,
+    getSemesters,
+    getInstructorsFromTimeTable
 };

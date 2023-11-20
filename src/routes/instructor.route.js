@@ -19,5 +19,8 @@ router.route('/delete-instructor/:instructorId')
 router.route('/instructors')
     .get(asyncHandler(instructorController.readAll));
 
+router.route('/instructors-from-timetable')
+    .post(asyncHandler(instructorController.readFromTimetable));
+
 
 module.exports = router;

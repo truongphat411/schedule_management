@@ -121,3 +121,21 @@ exports.readAll = (req, res) => {
         }
     })
 }
+
+exports.readFromTimetable = (req, res) => {
+    const {department_id , semester_id} = req.body;
+
+    Instructor.getInstructorsFromTimetable(department_id, semester_id, (err, data) => {
+        if (err) {
+            res.status(500).send({
+                status: "error",
+                message: err.message
+            });
+        } else {    
+            res.status(200).send({
+                status: "success",
+                data
+            });
+        }
+    })
+}

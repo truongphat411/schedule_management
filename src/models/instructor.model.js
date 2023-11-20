@@ -4,7 +4,8 @@ const {
     findInstructorById: findInstructorByIdQuery,
     updateInstructorById: updateInstructorByIdQuery,
     deleteInstructorById: deleteInstructorById,
-    getInstructors: getInstructorsQuery
+    getInstructors: getInstructorsQuery,
+    getInstructorsFromTimeTable: getInstructorsFromTimeTableQuery
 } = require('../database/queries');
 const { logger } = require('../utils/logger');
 
@@ -91,12 +92,24 @@ class Instructor {
                     return;
                 }
                 if(res.length){
-                    // const instructorWithParsedJSON = res.map(instructor => {
-                    //     return {
-                    //         ...instructor,
-                    //         courses: JSON.parse(instructor.courses),
-                    //     };
-                    // });
+                    cb(null, res);
+                    return;
+                }
+                
+        });
+    }
+
+    static getInstructorsFromTimetable(department_id, semester_id, cb) {
+        db.query(getInstructorsFromTimeTableQuery, [
+            department_id,
+            semester_id
+        ], (err, res) => {
+                if (err) {
+                    logger.error(err.message);
+                    cb(err, null);
+                    return;
+                }
+                if(res.length){
                     cb(null, res);
                     return;
                 }
