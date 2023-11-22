@@ -7,7 +7,7 @@ const util = require('util');
 
 class Driver {
   constructor() {
-    this.POPULATION_SIZE = 100;
+    this.POPULATION_SIZE = 9;
     this.MUTATION_RATE = 0.1; // 0.01 - 0.1
     this.CROSSOVER_RATE = 0.9; // 0.7 - 0.9 ~ 1
     this.TOURNAMENT_SELECTION_SIZE = 3; // 2 - 5
@@ -83,7 +83,8 @@ class Driver {
           instructor_id: i.instructor.id,
           room_id: i.room.id,
           meeting_time_id: i.meetingTime.id,
-          department_id: i.department.id
+          department_id: i.department.id,
+          group_students_id: i.group_students.id
         });
       }
       console.log("success");

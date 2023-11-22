@@ -1,12 +1,7 @@
-const db = require('../config/db.config');
-const { 
-    createNewCourse: createNewCourseQuery
-    } = require('../database/queries');
-const { logger } = require('../utils/logger');
-
 class Class {
-    constructor(id, department, course) {
+    constructor(id, group_students, department, course) {
         this.id = id;
+        this.group_students = group_students;
         this.course = course;
         this.instructor = null;
         this.meetingTime = null;
@@ -25,6 +20,7 @@ class Class {
     setRoom(room) {
         this.room = room;
     }
+
 
     getId() {
     return this.id;
@@ -48,6 +44,10 @@ class Class {
 
     getRoom() {
     return this.room;
+    }
+
+    getGroupStudents() {
+        return this.group_students;
     }
 }
 

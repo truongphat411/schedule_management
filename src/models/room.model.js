@@ -28,6 +28,14 @@ class Room {
     getSeatingCapacity(){
         return this.capacity;
     }
+
+    getAreaId() {
+        return this.area_id;
+    }
+
+    getKingOfRoomId() {
+        return this.kind_of_room_id;
+    }
    
     static create(newRoom, cb) {
         db.query(createNewRoomQuery, 

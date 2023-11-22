@@ -6,6 +6,7 @@ const MeetingTime = require('./models/meeting_time.model');
 const Instructor = require('./models/instructor.model');
 const Department = require('./models/department.model');
 const Semester = require('./models/semester.model');
+const GroupStudents = require('./models/group_students.model');
 
 class Data {
 
@@ -15,6 +16,7 @@ class Data {
         this.courses = [];
         this.depts = [];
         this.meetingTimes = [];
+        this.group_students = [];
         this.numberOfClasses  = 0;
     }
 
@@ -24,7 +26,7 @@ class Data {
         const rsr = await async_get_query("SELECT * FROM room");
         const r = [];
         for (let i of rsr) {
-            const room = new Room(i.id,i.room_name,i.capacity);
+            const room = new Room(i.id,i.room_name,i.capacity,i.area_id,i.kind_of_room_id);
             r.push(room);
         }
         this.room = r;
@@ -32,7 +34,7 @@ class Data {
         const rsmt = await async_get_query("SELECT * FROM meeting_time");
         const mt = [];
         for (let i of rsmt) {
-            const meeting_time = new MeetingTime(i.id,i.time);
+            const meeting_time = new MeetingTime(i.id,i.time,i.time_start,i.daysOfTheWeek,i.sessionsDuringTheDay);
             mt.push(meeting_time);
         }
         this.meetingTimes = mt;
@@ -44,6 +46,18 @@ class Data {
             instr.push(instructor);
         }
         this.instructors = instr;
+
+        //// Group_students
+        const rsgrstud = await async_push_query(`
+        SELECT * FROM group_students WHERE department_id = ?
+        `, department_id);
+        const grstud = [];
+        for (let i of rsgrstud) {
+            const group_students = new GroupStudents(i.id,i.group_name,i.numberOfStudents,i.department_id);
+            grstud.push(group_students);
+        }
+        this.group_students = grstud;
+
         //// Course
         const rsc = await async_get_query(`
         SELECT
@@ -87,30 +101,43 @@ class Data {
         'course_name', c.course_name,
         'credits', c.credits,
         'maxNumberOfStudents', c.maxNumberOfStudents
-        )) AS listCourse
+        )) AS courses
         FROM department d
-        LEFT JOIN department_course dc ON d.id = dc.department_id
-        LEFT JOIN course c ON dc.course_id = c.id
+        JOIN department_course dc ON d.id = dc.department_id
+        JOIN course c ON dc.course_id = c.id
         WHERE d.id = ? AND c.semester_id = ?
         GROUP BY d.id, d.department_name
         `, [department_id, semester_id]);
+        const rsgrst = await async_push_query(`
+        SELECT * FROM group_students WHERE department_id = ?
+        `, department_id);
         const dept = [];
         for (let i of rsdept) {
-            // Parse the JSON string into an array of course objects
-            const courseArray = JSON.parse(`[${i.listCourse}]`);
-            // Create an array of course objects
-            const courses = [];
-            for (let x of courseArray) {
-                for(let y of this.courses){
-                    if(x.id === y.id){
-                        const course = new Course(x.id, x.course_name, x.credits, x.maxNumberOfStudents, y.semester,y.instructors);
-                        courses.push(course);
+            try {
+                const courseArray = JSON.parse(`[${i.courses}]`);
+                const courses = [];
+                for (let x of courseArray) {
+                    for (let y of this.courses) {
+                        if (x.id === y.id) {
+                            const course = new Course(x.id, x.course_name, x.credits, x.maxNumberOfStudents, y.semester, y.instructors);
+                            courses.push(course);
+                        }
                     }
                 }
+                const students = [];
+                for (let x of rsgrst) {
+                    for (let y of this.group_students) {
+                        if (x.id === y.id) {
+                            const group = new GroupStudents(x.id, x.group_name, x.numberOfStudents, x.department_id);
+                            students.push(group);
+                        }
+                    }
+                }
+                const department = new Department(i.id, i.department_name, courses, students);
+                dept.push(department);
+            } catch (error) {
+                console.error("Error parsing courses:", error);
             }
-            // const courses = courseArray.map((course) => new Course(course.id, course.course_name, course.credits, course.maxNumberOfStudents, null));
-            const department = new Department(i.id,i.department_name,courses);
-            dept.push(department);
         }
         this.depts = dept;
 
@@ -137,6 +164,10 @@ class Data {
 
     getDepts(){
         return this.depts;
+    }
+
+    getGroupStudents(){
+        return this.group_students;
     }
 
     getNumberOfClasses(){

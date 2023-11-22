@@ -4,10 +4,11 @@ const {
   } = require('../database/queries');
 
 class Department {
-    constructor(id,department_name,courses) {
+    constructor(id,department_name,courses, group_students) {
       this.id = id;
       this.department_name = department_name;
-      this.listCourse = courses;
+      this.courses = courses;
+      this.group_students = group_students;
     }
 
       getDepartmentName() {
@@ -15,7 +16,11 @@ class Department {
       }
     
       getCourses() {
-        return this.listCourse;
+        return this.courses;
+      }
+
+      getGroupStudents() {
+        return this.group_students;
       }
 
       static getDepartments(cb) {
