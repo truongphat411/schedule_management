@@ -56,7 +56,20 @@ INSERT INTO instructor VALUES(null, ?)
 `;
 
 const findInstructorById = `
-SELECT * FROM instructor WHERE id = ?
+SELECT 
+i.id,
+i.instructor_name,
+i.email,
+i.number_phone,
+i.gender,
+GROUP_CONCAT(json_object(
+        'id', d.id,
+        'department_name', d.department_name
+        )) AS department 
+FROM instructor i
+JOIN department d ON d.id = i.department_id
+WHERE i.id = ?
+GROUP BY i.id, i.instructor_name, i.email, i.number_phone, i.gender
 `
 
 const updateInstructorById = `
@@ -164,7 +177,7 @@ JOIN course c ON ci.course_id = c.id
 JOIN instructor i ON ci.instructor_id = i.id
 JOIN department d ON d.id = i.department_id
 JOIN semester s ON s.id = c.semester_id
-WHERE d.id = ? AND s.id = ?
+WHERE d.id = ? AND s.id = ? AND cl.instructor_id = i.id AND cl.semester_id = s.id AND cl.department_id = d.id
 GROUP BY i.id, i.instructor_name, i.email, i.number_phone, d.department_name, c.course_name
 `
 

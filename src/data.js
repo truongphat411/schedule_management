@@ -17,6 +17,7 @@ class Data {
         this.depts = [];
         this.meetingTimes = [];
         this.group_students = [];
+        this.semester = [];
         this.numberOfClasses  = 0;
     }
 
@@ -145,6 +146,91 @@ class Data {
             this.numberOfClasses += department.getCourses().length;
           });
     }
+
+    async getClass(department_id, semester_id) {
+        const rsc = await async_push_query(`
+        SELECT * FROM class WHERE department_id = ? AND semester_id = ?
+        `, [department_id, semester_id])
+        const classes = [];
+        var date;
+        if(semester_id === 1) {
+            date = '21/8/2023 - 29/10/2023'
+          } else if (semester_id === 2) {
+            date = '13/11/2023 - 08/01/2023'
+          } else if (semester_id === 3) {
+            date = '21/01/2023 - 04/03/2024'
+          } else {
+            date = '24/03/2023 - 05/05/2023'
+          }
+        for(let x of rsc) {
+            const course = await async_push_query(`
+            SELECT * FROM course WHERE id = ? LIMIT 1
+            `, x.course_id);
+            const instructor = await async_push_query(`
+            SELECT * FROM instructor WHERE id = ? LIMIT 1
+            `, x.instructor_id)
+            const room = await async_push_query(`
+            SELECT * FROM room WHERE id = ? LIMIT 1
+            `, x.room_id);
+            const meeting_time = await async_push_query(`
+            SELECT * FROM meeting_time WHERE id = ? LIMIT 1
+            `, x.meeting_time_id);
+            const department = await async_push_query(`
+            SELECT * FROM department WHERE id = ? LIMIT 1
+            `, x.department_id);
+            const group_students = await async_push_query(`
+            SELECT * FROM group_students WHERE id = ? LIMIT 1
+            `, x.group_students_id);
+            classes.push({
+                id: x.id,
+                course: course,
+                instructor: instructor,
+                room: room,
+                meeting_time: meeting_time,
+                department: department,
+                group_students: group_students
+            });
+        }
+        return classes;
+    }
+
+    async getClassById(class_id) {
+        const rsc = await async_push_query(`
+        SELECT * FROM class WHERE id = ? LIMIT 1
+        `, [class_id]);
+        const classes = [];
+        for(let x of rsc) {
+            const course = await async_push_query(`
+            SELECT * FROM course WHERE id = ? LIMIT 1
+            `, x.course_id);
+            const instructor = await async_push_query(`
+            SELECT * FROM instructor WHERE id = ? LIMIT 1
+            `, x.instructor_id)
+            const room = await async_push_query(`
+            SELECT * FROM room WHERE id = ? LIMIT 1
+            `, x.room_id);
+            const meeting_time = await async_push_query(`
+            SELECT * FROM meeting_time WHERE id = ? LIMIT 1
+            `, x.meeting_time_id);
+            const department = await async_push_query(`
+            SELECT * FROM department WHERE id = ? LIMIT 1
+            `, x.department_id);
+            const group_students = await async_push_query(`
+            SELECT * FROM group_students WHERE id = ? LIMIT 1
+            `, x.group_students_id);
+            classes.push({
+                id: x.id,
+                course: course,
+                instructor: instructor,
+                room: room,
+                meeting_time: meeting_time,
+                department: department,
+                group_students: group_students
+            });
+        }
+        return classes;
+    }
+
 
     getRooms(){
         return this.room;

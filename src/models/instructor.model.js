@@ -49,6 +49,12 @@ class Instructor {
                     return;
                 }
                 if (res.length) {
+                    const instructor = res[0];
+                    instructor.department = JSON.parse(instructor.department);
+                    cb(null, instructor);
+                    return;
+                }
+                if (res.length) {
                     cb(null, res[0]);
                     return;
                 }

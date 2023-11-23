@@ -5,16 +5,16 @@ const { authenticatateJWT } = require('../middlewares/authenticator');
 
 
 router.route('/create-instructor')
-    .post(authenticatateJWT, asyncHandler(instructorController.create));
+    .post(asyncHandler(instructorController.create));
 
 router.route('/instructor/:instructorId')
-    .get(authenticatateJWT, asyncHandler(instructorController.read));
+    .get(asyncHandler(instructorController.read));
 
 router.route('/update-instructor/:instructorId')
-    .post(authenticatateJWT, asyncHandler(instructorController.update));
+    .post(asyncHandler(instructorController.update));
 
 router.route('/delete-instructor/:instructorId')
-    .get(authenticatateJWT, asyncHandler(instructorController.delete));
+    .get(asyncHandler(instructorController.delete));
 
 router.route('/instructors')
     .get(asyncHandler(instructorController.readAll));

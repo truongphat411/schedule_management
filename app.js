@@ -115,9 +115,9 @@ app.get('/api/generate-docx', async (req, res) => {
         } else if (semester_id === 2) {
           date = '13/11/2023 - 08/01/2023'
         } else if (semester_id === 3) {
-          date = '29/01/2023 - 04/03/2024'
+          date = '21/01/2023 - 04/03/2024'
         } else {
-          date = '19/03/2023 - 23/05/2023'
+          date = '24/03/2023 - 05/05/2023'
         }
 
     for (let i = 0; i < data.length; i++) {

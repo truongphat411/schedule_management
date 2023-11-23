@@ -84,7 +84,8 @@ class Driver {
           room_id: i.room.id,
           meeting_time_id: i.meetingTime.id,
           department_id: i.department.id,
-          group_students_id: i.group_students.id
+          group_students_id: i.group_students.id,
+          semester_id: semester_id
         });
       }
       console.log("success");
