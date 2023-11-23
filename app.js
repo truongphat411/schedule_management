@@ -52,6 +52,10 @@ app.get('/', (req, res) => {
 
 app.get('/api/generate-docx', async (req, res) => {
 
+    const department_id  = req.query.department_id;
+
+    const semester_id = req.query.semester_id;
+
     // Extract the raw value of the "ids" query parameter
     const rawIds = req.query.ids;
 
@@ -62,7 +66,6 @@ app.get('/api/generate-docx', async (req, res) => {
     const ids = cleanedIds.split(',').map(Number);
 
 
-    console.log('PhatNMT', ids);
     for (let i = 0; i < ids.length; i++){
 
         const content = fs.readFileSync(
@@ -82,12 +85,14 @@ app.get('/api/generate-docx', async (req, res) => {
         cl.id,
           c.course_name,
           c.credits,
-          c.maxNumberOfStudents,
           i.instructor_name,
           r.room_name,
-          mt.time,
+          mt.time_start,
+          mt.daysOfTheWeek,
           d.department_name,
-          i.email
+          i.email,
+          gr.group_name,
+          gr.numberOfStudents
         FROM
             class cl
         JOIN course c ON cl.course_id = c.id
@@ -96,11 +101,24 @@ app.get('/api/generate-docx', async (req, res) => {
         JOIN department d ON cl.department_id = d.id
         JOIN meeting_time mt ON cl.meeting_time_id = mt.id
         JOIN room r ON cl.room_id = r.id
+        JOIN group_students gr ON gr.id = cl.group_students_id
         WHERE i.id = ?
         `,ids[i]);
         var stt = 0;
     
         const classes = [];
+
+        var date = '';
+        
+        if(semester_id === 1) {
+          date = '21/8/2023 - 29/10/2023'
+        } else if (semester_id === 2) {
+          date = '13/11/2023 - 08/01/2023'
+        } else if (semester_id === 3) {
+          date = '29/01/2023 - 04/03/2024'
+        } else {
+          date = '19/03/2023 - 23/05/2023'
+        }
 
     for (let i = 0; i < data.length; i++) {
         const cl = data[i];
@@ -112,8 +130,13 @@ app.get('/api/generate-docx', async (req, res) => {
             instructor_name: cl.instructor_name,
             room_name: cl.room_name,
             credits: cl.credits,
-            maxNumberOfStudents: cl.maxNumberOfStudents,
-            email: cl.email
+            email: cl.email,
+            group_name: cl.group_name,
+            numberOfStudents: cl.numberOfStudents,
+            time_start: cl.time_start,
+            daysOfTheWeek: cl.daysOfTheWeek,
+            numberOfPeriods: 3,
+            date: date
         });
     }
 
