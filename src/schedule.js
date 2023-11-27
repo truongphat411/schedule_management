@@ -82,6 +82,12 @@ class Schedule{
                 if(x.getMeetingTime().getSessionsDuringTheDay() !== y.getMeetingTime().getSessionsDuringTheDay()) {
                   this.numbOfConflicts++;
                 }
+                if(x.getMeetingTime() === y.getMeetingTime()){
+                  this.numbOfConflicts++;
+                }
+                if(x.getRoom() !== y.getRoom()){
+                  this.numbOfConflicts++;
+                }
               }
             }
           });
