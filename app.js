@@ -9,6 +9,12 @@ var nodemailer = require('nodemailer');
 
 const fs = require("fs");
 const path = require("path");
+const axios = require('axios');
+
+const formidable = require('formidable');
+const xlsx = require('xlsx');
+
+var convertapi = require('convertapi')('RZHyMEPFNDpPBUUS', {conversionTimeout: 60});
 
 const authRoute = require('./src/routes/auth.route');
 const courseRoute = require('./src/routes/course.route');
@@ -51,6 +57,8 @@ app.get('/', (req, res) => {
 
 
 app.get('/api/generate-docx', async (req, res) => {
+
+    try {
 
     const department_id  = req.query.department_id;
 
@@ -152,42 +160,130 @@ app.get('/api/generate-docx', async (req, res) => {
         type: "nodebuffer",
         compression: "DEFLATE",
         });
-    
-        var transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-              user: 'nguyenmaitruongphat@gmail.com',
-              pass: 'kirc uswj lhrm sopo'
-            }
+
+        fs.writeFileSync(path.resolve("src/uploads", "output.docx"), buf);
+
+        const pdfBuffer = await convertToPdf("src/uploads/output.docx");
+
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        await sendEmailWithAttachment(email, instructor_name, pdfBuffer);
+
+      }
+        res.status(200).send({
+        message: 'Emails sent successfully'
+        });
+        } catch (error) {
+          console.error('An error occurred:', error);
+          res.status(500).send({
+              status: 'error',
+              message: 'Internal server error',
           });
-          
-          var mailOptions = {
-            from: 'nguyenmaitruongphat@gmail.com',
-            to: email,
-            subject: 'Thư mời giảng',
-            text: 'Nhà trường xin phép gửi thư mời giảng đến giảng viên: ' + instructor_name,
-            attachments: [
-                {
-                  filename: 'thumoigiang.docx',
-                  content: buf,
-                },
-              ],
-          };
+}
+});
+
+const convertToPdf = async (docxPath) => {
+  try {
+      const pdfResult = await convertapi.convert('pdf', {
+          File: docxPath,
+      });
+
+      if (!pdfResult.files || pdfResult.files.length === 0) {
+          throw new Error('No PDF files were generated.');
+      }
+
+      const pdfFile = pdfResult.files[0];
+      const response = await axios.get(pdfFile.url, { responseType: 'arraybuffer' });
+      return Buffer.from(response.data);
+  } catch (error) {
+      console.error('PDF conversion failed:', error);
+      throw error;
+  }
+};
+
+const sendEmailWithAttachment = async (email, instructor_name, pdfBuffer) => {
+  try {
+    var transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: 'nguyenmaitruongphat@gmail.com',
+        pass: 'kirc uswj lhrm sopo'
+      }
+    });
     
-          transporter.sendMail(mailOptions, function(error, info){
-            if (error) {
-              console.log(error);
-              res.status(401).send({
-                message: error.message
-              });
-            } else {
-              console.log('Email sent: ' + info.response);
-              res.status(200).send({
-                message: info.messageId
-              })
-            }
-          });
+    var mailOptions = {
+      from: 'nguyenmaitruongphat@gmail.com',
+      to: email,
+      subject: 'Thư mời giảng',
+      text: 'Nhà trường xin phép gửi thư mời giảng đến giảng viên: ' + instructor_name,
+      attachments: [
+          {
+            filename: 'thumoigiang.pdf',
+            //path: 'src/uploads/output.pdf',
+            content: pdfBuffer.toString('base64'),
+            encoding: 'base64',
+            contentType: 'application/pdf'
+          },
+        ],
+    };
+
+    transporter.sendMail(mailOptions, function(error, info){
+      if (error) {
+        console.log(error);
+      } else {
+        console.log('Email sent: ' + info.response);
+      }
+    });
+  } catch (error) {
+      console.error('Email sending failed:', error);
+      throw error;
+  }
+};
+
+app.post('/upload', (req, res) => {
+  const form = new formidable.IncomingForm();
+
+  form.parse(req, (err, fields, files) => {
+    if (err) {
+      console.error('Error parsing form:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
     }
+
+    // Check if a file is provided
+    if (!files.excelFile) {
+      res.status(400).json({ error: 'No file provided' });
+      return;
+    }
+
+    // Move the uploaded file to a desired location
+    const oldPath = files.excelFile.tmpPath;
+    const newPath = 'src/uploads/' + files.excelFile.name;
+
+    fs.rename(oldPath, newPath, async (renameErr) => {
+      if (renameErr) {
+        console.error('Error moving file:', renameErr);
+        res.status(500).json({ error: 'Internal Server Error' });
+        return;
+      }
+
+      try {
+        // Read the Excel file
+        const workbook = xlsx.readFile(newPath);
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        const jsonData = xlsx.utils.sheet_to_json(sheet, { header: 1 });
+
+        // Do something with the data (e.g., log to console)
+        console.log('Parsed Data:', jsonData);
+
+        res.status(200).json({ success: true, data: jsonData });
+      } catch (excelErr) {
+        console.error('Error reading Excel file:', excelErr);
+        res.status(500).json({ error: 'Internal Server Error' });
+      }
+    });
+  });
 });
 
 
