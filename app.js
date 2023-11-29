@@ -11,7 +11,11 @@ const fs = require("fs");
 const path = require("path");
 const axios = require('axios');
 
-const formidable = require('formidable');
+const multer = require('multer');
+// Set up multer for handling file uploads
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+
 const xlsx = require('xlsx');
 
 var convertapi = require('convertapi')('RZHyMEPFNDpPBUUS', {conversionTimeout: 60});
@@ -240,50 +244,28 @@ const sendEmailWithAttachment = async (email, instructor_name, pdfBuffer) => {
   }
 };
 
-app.post('/upload', (req, res) => {
-  const form = new formidable.IncomingForm();
+// Handle file upload
+app.post('/upload', upload.single('file'), (req, res) => {
+  try {
+      // Access the uploaded file buffer
+      const fileBuffer = req.file.buffer;
 
-  form.parse(req, (err, fields, files) => {
-    if (err) {
-      console.error('Error parsing form:', err);
-      res.status(500).json({ error: 'Internal Server Error' });
-      return;
-    }
+      // Parse the Excel file
+      const workbook = xlsx.read(fileBuffer, { type: 'buffer' });
 
-    // Check if a file is provided
-    if (!files.excelFile) {
-      res.status(400).json({ error: 'No file provided' });
-      return;
-    }
+      // Assuming there is only one sheet, you can access it like this
+      const sheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
 
-    // Move the uploaded file to a desired location
-    const oldPath = files.excelFile.tmpPath;
-    const newPath = 'src/uploads/' + files.excelFile.name;
+      // Convert the sheet to a JSON object
+      const jsonData = xlsx.utils.sheet_to_json(sheet);
 
-    fs.rename(oldPath, newPath, async (renameErr) => {
-      if (renameErr) {
-        console.error('Error moving file:', renameErr);
-        res.status(500).json({ error: 'Internal Server Error' });
-        return;
-      }
-
-      try {
-        // Read the Excel file
-        const workbook = xlsx.readFile(newPath);
-        const sheetName = workbook.SheetNames[0];
-        const sheet = workbook.Sheets[sheetName];
-        const jsonData = xlsx.utils.sheet_to_json(sheet, { header: 1 });
-
-        // Do something with the data (e.g., log to console)
-        console.log('Parsed Data:', jsonData);
-
-        res.status(200).json({ success: true, data: jsonData });
-      } catch (excelErr) {
-        console.error('Error reading Excel file:', excelErr);
-        res.status(500).json({ error: 'Internal Server Error' });
-      }
-    });
-  });
+      // Respond with the parsed data
+      res.json(jsonData);
+  } catch (error) {
+      console.error('Error:', error.message);
+      res.status(500).send('Internal Server Error');
+  }
 });
 
 
