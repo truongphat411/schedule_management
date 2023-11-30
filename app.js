@@ -245,7 +245,7 @@ const sendEmailWithAttachment = async (email, instructor_name, pdfBuffer) => {
 };
 
 // Handle file upload
-app.post('/upload', upload.single('file'), (req, res) => {
+app.post('/upload', upload.single('file'), async (req, res) => {
   try {
       // Access the uploaded file buffer
       const fileBuffer = req.file.buffer;
@@ -260,8 +260,44 @@ app.post('/upload', upload.single('file'), (req, res) => {
       // Convert the sheet to a JSON object
       const jsonData = xlsx.utils.sheet_to_json(sheet);
 
+      const data = [];
+
+      for (let index = 0; index < jsonData.length; index++) {
+        const item = jsonData[index];
+
+        const course = await util.promisify(db.query).call(db, `
+        SELECT * FROM course WHERE id = ?
+        `,item["Mã MH"]);
+
+        const group_students = await util.promisify(db.query).call(db, `
+        SELECT * FROM group_students WHERE group_name = ?
+        `,item["Tên lớp"]);
+
+        const meeting_time = await util.promisify(db.query).call(db, `
+        SELECT * FROM meeting_time WHERE daysOfTheWeek = ? AND time_start = ?
+        `,[item["Thứ"],item["Tiết bắt đầu"]]);
+
+        const room = await util.promisify(db.query).call(db, `
+        SELECT * FROM room WHERE room_name = ?
+        `,item["Phòng"]);
+
+        const instructor = await util.promisify(db.query).call(db, `
+        SELECT * FROM instructor WHERE instructor_name = ?
+        `,item["Tên giảng viên"]);
+
+        data.push({
+          course: course,
+          group_students: group_students,
+          meeting_time: meeting_time,
+          room: room,
+        });
+      }
+
       // Respond with the parsed data
-      res.json(jsonData);
+      res.status(200).send({
+        status: 'susscess',
+        data
+        });
   } catch (error) {
       console.error('Error:', error.message);
       res.status(500).send('Internal Server Error');
