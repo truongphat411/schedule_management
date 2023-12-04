@@ -248,7 +248,8 @@ const sendEmailWithAttachment = async (email, instructor_name, pdfBuffer) => {
 app.post('/upload', upload.single('file'), async (req, res) => {
   try {
       // Access the uploaded file buffer
-      const fileBuffer = req.file.buffer;
+      const fileBuffer = req.
+      file.buffer;
 
       // Parse the Excel file
       const workbook = xlsx.read(fileBuffer, { type: 'buffer' });
@@ -260,7 +261,7 @@ app.post('/upload', upload.single('file'), async (req, res) => {
       // Convert the sheet to a JSON object
       const jsonData = xlsx.utils.sheet_to_json(sheet);
 
-      const data = [];
+      var data = [];
 
       for (let index = 0; index < jsonData.length; index++) {
         const item = jsonData[index];
@@ -285,17 +286,33 @@ app.post('/upload', upload.single('file'), async (req, res) => {
         SELECT * FROM instructor WHERE instructor_name = ?
         `,item["Tên giảng viên"]);
 
+        const semester = await util.promisify(db.query).call(db, `
+        SELECT * FROM semester WHERE semester_name = ?
+        `,item["Học kì"]);
+
+        const department = await util.promisify(db.query).call(db, `
+        SELECT * FROM department WHERE department_name = ?
+        `,item["Khoa"]);
+
         data.push({
           course: course,
           group_students: group_students,
           meeting_time: meeting_time,
           room: room,
+          instructor: instructor,
+          semester: semester,
+          department: department
         });
       }
 
-      // Respond with the parsed data
+      const isCheck = await checkConflictTimeTable(data);
+
+      if(!isCheck){
+        data = [];
+      }
+
       res.status(200).send({
-        status: 'susscess',
+        status: 'success',
         data
         });
   } catch (error) {
@@ -303,6 +320,36 @@ app.post('/upload', upload.single('file'), async (req, res) => {
       res.status(500).send('Internal Server Error');
   }
 });
+
+const checkConflictTimeTable = async (data) => {
+  for(let i = 0; i < data.length; i++) {
+    for(let j = i + 1; j <= data.length; j++) {
+      const x = data[i];
+      const y = data[j];
+        if(x.meeting_time[0].daysOfTheWeek === y.meeting_time[0].daysOfTheWeek &&
+           x.meeting_time[0].sessionsDuringTheDay === y.meeting_time[0].sessionsDuringTheDay &&
+            x.meeting_time[0].time === y.meeting_time[0].time) {
+              if(x.room[0].room_name === y.room[0].room_name) {
+                return false;
+              }
+              if(x.instructor[0].instructor_name === y.instructor[0].instructor_name) {
+                return false;
+              }
+            }
+        if (x.instructor[0].instructor_name === y.instructor[0].instructor_name) {
+          if(x.room[0].area_id !== y.room[0].area_id) {
+            return false;
+          }
+          if(x.meeting_time[0].daysOfTheWeek === y.meeting_time[0].daysOfTheWeek) {
+            if(x.meeting_time[0].sessionsDuringTheDay !== y.meeting_time[0].sessionsDuringTheDay) {
+              return false;
+            }
+          }
+        }
+      return true;
+    }
+  }
+}
 
 
 app.use((err, req, res, next) => {
