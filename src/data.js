@@ -152,16 +152,6 @@ class Data {
         SELECT * FROM class WHERE department_id = ? AND semester_id = ?
         `, [department_id, semester_id])
         const classes = [];
-        var date;
-        if(semester_id === 1) {
-            date = '21/8/2023 - 29/10/2023'
-          } else if (semester_id === 2) {
-            date = '13/11/2023 - 08/01/2023'
-          } else if (semester_id === 3) {
-            date = '21/01/2023 - 04/03/2024'
-          } else {
-            date = '24/03/2023 - 05/05/2023'
-          }
         for(let x of rsc) {
             const course = await async_push_query(`
             SELECT * FROM course WHERE id = ? LIMIT 1

@@ -245,7 +245,7 @@ const sendEmailWithAttachment = async (email, instructor_name, pdfBuffer) => {
 };
 
 // Handle file upload
-app.post('/upload', upload.single('file'), async (req, res) => {
+app.post('/api/upload', upload.single('file'), async (req, res) => {
   try {
       // Access the uploaded file buffer
       const fileBuffer = req.
@@ -301,7 +301,9 @@ app.post('/upload', upload.single('file'), async (req, res) => {
           room: room,
           instructor: instructor,
           semester: semester,
-          department: department
+          department: department,
+          numberOfPeriods: item["Số tiết"],
+          date: item["Ngày học"]
         });
       }
 
@@ -326,6 +328,9 @@ const checkConflictTimeTable = async (data) => {
     for(let j = i + 1; j <= data.length; j++) {
       const x = data[i];
       const y = data[j];
+        if(x.semester[0].semester_name !== y.semester[0].semester_name) {
+          return false;
+        }
         if(x.meeting_time[0].daysOfTheWeek === y.meeting_time[0].daysOfTheWeek &&
            x.meeting_time[0].sessionsDuringTheDay === y.meeting_time[0].sessionsDuringTheDay &&
             x.meeting_time[0].time === y.meeting_time[0].time) {
@@ -337,11 +342,8 @@ const checkConflictTimeTable = async (data) => {
               }
             }
         if (x.instructor[0].instructor_name === y.instructor[0].instructor_name) {
-          if(x.room[0].area_id !== y.room[0].area_id) {
-            return false;
-          }
           if(x.meeting_time[0].daysOfTheWeek === y.meeting_time[0].daysOfTheWeek) {
-            if(x.meeting_time[0].sessionsDuringTheDay !== y.meeting_time[0].sessionsDuringTheDay) {
+            if(x.room[0].area_id !== y.room[0].area_id) {
               return false;
             }
           }
