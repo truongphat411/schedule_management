@@ -328,7 +328,8 @@ const checkConflictTimeTable = async (data) => {
     for(let j = i + 1; j <= data.length; j++) {
       const x = data[i];
       const y = data[j];
-        if(x.semester[0].semester_name !== y.semester[0].semester_name) {
+        if(x.semester[0].semester_name !== y.semester[0].semester_name ||
+          x.department[0].department_name !== y.department[0].department_name) {
           return false;
         }
         if(x.meeting_time[0].daysOfTheWeek === y.meeting_time[0].daysOfTheWeek &&
