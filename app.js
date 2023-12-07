@@ -17,6 +17,7 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 const xlsx = require('xlsx');
+const Data = require("./src/data.js");
 
 var convertapi = require('convertapi')('RZHyMEPFNDpPBUUS', {conversionTimeout: 60});
 
@@ -352,6 +353,19 @@ const checkConflictTimeTable = async (data) => {
     }
   }
 }
+
+app.post('/api/save-classes', async (req, res) => {
+    const classes = req.body;
+    const result = new Data();
+    console.log('Phat-department',classes[0].department[0].id);
+    console.log('Phat-semester',classes[0].semester[0].id);
+    const data = await result.getClass(classes[0].department[0].id, classes[0].semester[0].id); 
+    console.log('PhatNMT-log',data);
+    res.status(200).send({
+      status: 'success'
+      });
+
+});
 
 
 app.use((err, req, res, next) => {
