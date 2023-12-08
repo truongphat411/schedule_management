@@ -30,6 +30,7 @@ const kindOfRoomRoute = require('./src/routes/kind_of_room.route');
 const departmentRoute = require('./src/routes/department.route');
 const classRoute = require('./src/routes/class.route');
 const semesterRoute = require('./src/routes/semester.route');
+const statusMailRoute = require('./src/routes/status_mail.route');
 
 const { httpLogStream } = require('./src/utils/logger');
 
@@ -50,6 +51,7 @@ app.use('/api/', kindOfRoomRoute);
 app.use('/api/', departmentRoute);
 app.use('/api/', classRoute);
 app.use('/api/', semesterRoute);
+app.use('/api/', statusMailRoute);
 
 app.get('/', (req, res) => {
     res.status(200).send({
@@ -105,7 +107,9 @@ app.get('/api/generate-docx', async (req, res) => {
           d.department_name,
           i.email,
           gr.group_name,
-          gr.numberOfStudents
+          gr.numberOfStudents,
+          cl.number_of_periods,
+          cl.study_time
         FROM
             class cl
         JOIN course c ON cl.course_id = c.id
@@ -120,18 +124,6 @@ app.get('/api/generate-docx', async (req, res) => {
         var stt = 0;
     
         const classes = [];
-
-        var date = '';
-        
-        if(semester_id === 1) {
-          date = '21/8/2023 - 29/10/2023'
-        } else if (semester_id === 2) {
-          date = '13/11/2023 - 08/01/2023'
-        } else if (semester_id === 3) {
-          date = '21/01/2023 - 04/03/2024'
-        } else {
-          date = '24/03/2023 - 05/05/2023'
-        }
 
     for (let i = 0; i < data.length; i++) {
         const cl = data[i];
@@ -148,8 +140,8 @@ app.get('/api/generate-docx', async (req, res) => {
             numberOfStudents: cl.numberOfStudents,
             time_start: cl.time_start,
             daysOfTheWeek: cl.daysOfTheWeek,
-            numberOfPeriods: 3,
-            date: date
+            numberOfPeriods: cl.number_of_periods,
+            study_time: cl.study_time
         });
     }
 
@@ -174,6 +166,17 @@ app.get('/api/generate-docx', async (req, res) => {
 
         await sendEmailWithAttachment(email, instructor_name, pdfBuffer);
 
+        const status = await util.promisify(db.query).call(db,`
+          SELECT * FROM status_mail 
+          WHERE semester_id = ? AND 
+          instructor_id = ?`,[semester_id, ids[i]]);
+        if (status.length === 0) {
+          await util.promisify(db.query).call(db,"INSERT INTO status_mail SET ?",{
+            message: 'đã gửi',
+            instructor_id: ids[i],
+            semester_id: semester_id
+          });
+        }
       }
         res.status(200).send({
         message: 'Emails sent successfully'
@@ -313,7 +316,6 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
       if(!isCheck){
         data = [];
       }
-
       res.status(200).send({
         status: 'success',
         data
@@ -356,49 +358,67 @@ const checkConstraints = async (data) => {
 }
 
 app.post('/api/save-classes', async (req, res) => {
+  try {
     const classes = req.body;
-    const result = new Data();
-    var data = await result.getClass(classes[0].department[0].id, classes[0].semester[0].id);
-    const isCheck = await checkConflictTB(data, classes);
-    if(!isCheck) {
-      data = [];
-    }
-    res.status(200).send({
-      status: 'success',
-      data
-    });
 
+    for (let index = 0; index < classes.length; index++) {
+      const item = classes[index];
+
+      const course = await util.promisify(db.query).call(db, `
+      SELECT * FROM course WHERE id = ?
+      `,item.course[0].id);
+
+      const group_students = await util.promisify(db.query).call(db, `
+      SELECT * FROM group_students WHERE group_name = ?
+      `,item.group_students[0].group_name);
+
+      const meeting_time = await util.promisify(db.query).call(db, `
+      SELECT * FROM meeting_time WHERE daysOfTheWeek = ? AND time_start = ?
+      `,[item.meeting_time[0].daysOfTheWeek,item.meeting_time[0].time_start]);
+
+      const room = await util.promisify(db.query).call(db, `
+      SELECT * FROM room WHERE room_name = ?
+      `,item.room[0].room_name);
+
+      const instructor = await util.promisify(db.query).call(db, `
+      SELECT * FROM instructor WHERE instructor_name = ?
+      `,item.instructor[0].instructor_name);
+
+      const semester = await util.promisify(db.query).call(db, `
+      SELECT * FROM semester WHERE semester_name = ?
+      `,item.semester[0].semester_name);
+
+      const department = await util.promisify(db.query).call(db, `
+      SELECT * FROM department WHERE department_name = ?
+      `,item.department[0].department_name);
+
+      const date = item.date;
+      const numberOfPeriods = item.numberOfPeriods;
+
+      await util.promisify(db.query).call(db,"INSERT INTO class SET ?",{
+        course_id: course[0].id,
+        instructor_id: instructor[0].id,
+        room_id: room[0].id,
+        meeting_time_id: meeting_time[0].id,
+        department_id: department[0].id,
+        group_students_id: group_students[0].id,
+        semester_id: semester[0].id,
+        study_time: date,
+        number_of_periods: numberOfPeriods
+      });
+    } 
+    res.status(200).send({
+      status: 'success'
+    });
+  } catch(error) {
+    console.error('Error saving classes:', error);
+    res.status(500).send({
+      status: 'error',
+      message: 'Internal Server Error'
+    });
+  }
 });
 
-const checkConflictTB = async (data, classes) => {
-  console.log('PhatNMT-',data[0].instructor[0].id);
-  console.log('PhatNMT-',classes[0].instructor[0].id);
-  console.log('PhatNMT-',data[0].course[0].id);
-  console.log('PhatNMT-',classes[0].course[0].id);
-  console.log('PhatNMT-',data[0].meeting_time[0].id);
-  console.log('PhatNMT-',classes[0].meeting_time[0].id);
-  console.log('PhatNMT-',data[0].meeting_time[0].sessionsDuringTheDay);
-  console.log('PhatNMT-',classes[0].meeting_time[0].sessionsDuringTheDay);
-  console.log('PhatNMT-',data[0].room[0].area_id);
-  console.log('PhatNMT-',classes[0].room[0].area_id);
-  for(let i = 0; i < data.length; i++) {
-    for(let j = 0; j < classes.length; j++) {
-      if(data[i].instructor[0].id === classes[j].instructor[0].id) {
-        if(data[i].course[0].id === classes[j].course[0].id) {
-          if(data[i].meeting_time[0].id === classes[j].meeting_time[0].id) {
-            return false;
-          }
-        }
-        if(data[i].meeting_time[0].daysOfTheWeek === classes[j].meeting_time[0].daysOfTheWeek) {
-          if(data[i].room[0].area_id !== classes[j].room[0].area_id) {
-            return false;
-          }
-        }
-      }
-    }
-  }
-  return true; 
-}
 
 app.use((err, req, res, next) => {
     res.status(err.statusCode || 500).send({

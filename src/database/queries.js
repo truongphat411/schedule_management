@@ -201,6 +201,10 @@ const getSemesters = `
 SELECT * FROM semester
 `
 
+const getStatusMail = `
+SELECT * FROM status_mail 
+`
+
 module.exports = {
     createDB,
     dropDB,
@@ -227,5 +231,6 @@ module.exports = {
     getDepartment,
     getInstructors,
     getSemesters,
-    getInstructorsFromTimeTable
+    getInstructorsFromTimeTable,
+    getStatusMail
 };
