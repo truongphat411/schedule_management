@@ -308,7 +308,7 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
         });
       }
 
-      const isCheck = await checkConflictTimeTable(data);
+      const isCheck = await checkConstraints(data);
 
       if(!isCheck){
         data = [];
@@ -324,7 +324,7 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
   }
 });
 
-const checkConflictTimeTable = async (data) => {
+const checkConstraints = async (data) => {
   for(let i = 0; i < data.length; i++) {
     for(let j = i + 1; j <= data.length; j++) {
       const x = data[i];
@@ -357,16 +357,47 @@ const checkConflictTimeTable = async (data) => {
 app.post('/api/save-classes', async (req, res) => {
     const classes = req.body;
     const result = new Data();
-    console.log('Phat-department',classes[0].department[0].id);
-    console.log('Phat-semester',classes[0].semester[0].id);
-    const data = await result.getClass(classes[0].department[0].id, classes[0].semester[0].id); 
-    console.log('PhatNMT-log',data);
+    var data = await result.getClass(classes[0].department[0].id, classes[0].semester[0].id);
+    const isCheck = await checkConflictTB(data, classes);
+    if(!isCheck) {
+      data = [];
+    }
     res.status(200).send({
-      status: 'success'
-      });
+      status: 'success',
+      data
+    });
 
 });
 
+const checkConflictTB = async (data, classes) => {
+  console.log('PhatNMT-',data[0].instructor[0].id);
+  console.log('PhatNMT-',classes[0].instructor[0].id);
+  console.log('PhatNMT-',data[0].course[0].id);
+  console.log('PhatNMT-',classes[0].course[0].id);
+  console.log('PhatNMT-',data[0].meeting_time[0].id);
+  console.log('PhatNMT-',classes[0].meeting_time[0].id);
+  console.log('PhatNMT-',data[0].meeting_time[0].sessionsDuringTheDay);
+  console.log('PhatNMT-',classes[0].meeting_time[0].sessionsDuringTheDay);
+  console.log('PhatNMT-',data[0].room[0].area_id);
+  console.log('PhatNMT-',classes[0].room[0].area_id);
+  for(let i = 0; i < data.length; i++) {
+    for(let j = 0; j < classes.length; j++) {
+      if(data[i].instructor[0].id === classes[j].instructor[0].id) {
+        if(data[i].course[0].id === classes[j].course[0].id) {
+          if(data[i].meeting_time[0].id === classes[j].meeting_time[0].id) {
+            return false;
+          }
+        }
+        if(data[i].meeting_time[0].daysOfTheWeek === classes[j].meeting_time[0].daysOfTheWeek) {
+          if(data[i].room[0].area_id !== classes[j].room[0].area_id) {
+            return false;
+          }
+        }
+      }
+    }
+  }
+  return true; 
+}
 
 app.use((err, req, res, next) => {
     res.status(err.statusCode || 500).send({
