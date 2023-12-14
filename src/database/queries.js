@@ -15,12 +15,24 @@ CREATE TABLE IF NOT EXISTS users (
 )
 `;
 
-const createNewUser = `
-INSERT INTO user VALUES(null, ?, ?, ?, ?, NOW())
+const createNewAccount = `
+INSERT INTO Account VALUES(null, ?, ?, ?, NOW(), ?, ?)
 `;
 
-const findUserByEmail = `
-SELECT * FROM user WHERE email = ?
+const findAccountByUserName = `
+SELECT 
+a.email,
+a.full_name,
+a.user_name,
+a.password,
+json_object(
+        'id', at.id,
+        'type_name', at.type_name
+        ) AS type 
+FROM Account a
+JOIN AccountType at ON at.id = a.type_id
+WHERE a.user_name = ?
+GROUP BY a.email, a.full_name, a.user_name
 `;
 
 const createNewCourse = `
@@ -209,8 +221,8 @@ module.exports = {
     createDB,
     dropDB,
     createTableUSers,
-    createNewUser,
-    findUserByEmail,
+    createNewAccount,
+    findAccountByUserName,
     createNewCourse,
     findCourseById,
     updateCourseById,

@@ -1,40 +1,34 @@
-const User = require('../models/user.model');
+const Account = require('../models/account.model');
 const { hash: hashPassword, compare: comparePassword } = require('../utils/password');
-const { generate: generateToken } = require('../utils/token');
 
 exports.signup = (req, res) => {
-    const { firstname, lastname, email, password } = req.body;
+    const { full_name, type_id,user_name, email, password } = req.body;
     const hashedPassword = hashPassword(password.trim());
 
-    const user = new User(null,firstname.trim(), lastname.trim(), email.trim(), hashedPassword);
+    const user = new Account(null,full_name.trim(),type_id,user_name.trim(), email.trim(), hashedPassword);
 
-    User.create(user, (err, data) => {
+    Account.create(user, (err, data) => {
         if (err) {
             res.status(500).send({
                 status: "error",
                 message: err.message
             });
         } else {
-            const token = generateToken(data.id);
-            res.status(201).send({
-                status: "success",
-                data: {
-                    token,
-                    data
-                }
+            res.status(200).send({
+                status: "sign up successfully"
             });
         }
     });
 };
 
 exports.signin = (req, res) => {
-    const { email, password } = req.body;
-    User.findByEmail(email.trim(), (err, data) => {
+    const { user_name, password } = req.body;
+    Account.findByUserName(user_name.trim(), (err, data) => {
         if (err) {
             if (err.kind === "not_found") {
                 res.status(404).send({
                     status: 'error',
-                    message: `User with email ${email} was not found`
+                    message: `User with ${user_name} was not found`
                 });
                 return;
             }
@@ -45,16 +39,10 @@ exports.signin = (req, res) => {
             return;
         }
         if (data) {
-            if (comparePassword(password.trim(), data.password)) {
-                const token = generateToken(data.id);
+            if (comparePassword(password.trim(), data[0].password)) {
                 res.status(200).send({
                     status: 'success',
-                    data: {
-                        token,
-                        firstname: data.firstname,
-                        lastname: data.lastname,
-                        email: data.email
-                    }
+                    data
                 });
                 return;
             }
