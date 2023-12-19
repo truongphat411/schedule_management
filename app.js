@@ -83,11 +83,6 @@ app.get('/', (req, res) => {
 app.get('/api/generate-docx', async (req, res) => {
 
     try {
-
-    const department_id  = req.query.department_id;
-
-    const semester_id = req.query.semester_id;
-
     // Extract the raw value of the "ids" query parameter
     const rawIds = req.query.ids;
 
@@ -97,8 +92,10 @@ app.get('/api/generate-docx', async (req, res) => {
     // Split the cleaned string into an array of integers
     const ids = cleanedIds.split(',').map(Number);
 
+    const instructors = await util.promisify(db.query).call(db, `
+            SELECT * FROM instructor`);
 
-    for (let i = 0; i < ids.length; i++){
+    for (let i = 0; i < instructors.length; i++){
 
         const content = fs.readFileSync(
             path.resolve("src/uploads", "thumoigiang.docx"),
@@ -137,7 +134,7 @@ app.get('/api/generate-docx', async (req, res) => {
         JOIN room r ON cl.room_id = r.id
         JOIN group_students gr ON gr.id = cl.group_students_id
         WHERE i.id = ?
-        `,ids[i]);
+        `,instructors[i]);
         var stt = 0;
     
         const classes = [];
