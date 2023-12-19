@@ -1,4 +1,8 @@
 const db = require('../config/db.config');
+const { 
+    getMeetingTime: getMeetingTimeQuery,
+} = require('../database/queries');
+const { logger } = require('../utils/logger');
 
 class MeetingTime {
     constructor(id,time,time_start,daysOfTheWeek, sessionsDuringTheDay) {
@@ -27,6 +31,21 @@ class MeetingTime {
 
     getSessionsDuringTheDay(){
         return this.sessionsDuringTheDay;
+    }
+
+    static readAll(cb) {
+        db.query(getMeetingTimeQuery, (err, res) => {
+                if (err) {
+                    logger.error(err.message);
+                    cb(err, null);
+                    return;
+                }
+                if (res.length) {
+                    cb(null, res);
+                    return;
+                }
+                cb({ kind: "not_found" }, null);
+        });
     }
 }
 

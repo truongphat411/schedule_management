@@ -19,4 +19,7 @@ router.route('/delete-room/:roomId')
 router.route('/rooms')
     .get(asyncHandler(roomController.readAll));
 
+router.route('/roomss')
+    .get(asyncHandler(roomController.readAllRooms));
+
 module.exports = router;

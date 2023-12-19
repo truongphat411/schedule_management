@@ -30,6 +30,8 @@ const kindOfRoomRoute = require('./src/routes/kind_of_room.route');
 const departmentRoute = require('./src/routes/department.route');
 const classRoute = require('./src/routes/class.route');
 const semesterRoute = require('./src/routes/semester.route');
+const groupStudentsRoute = require('./src/routes/group_students.route');
+const meetingTimeRoute = require('./src/routes/meeting_time.route');
 const statusMailRoute = require('./src/routes/status_mail.route');
 
 const { httpLogStream } = require('./src/utils/logger');
@@ -52,6 +54,22 @@ app.use('/api/', departmentRoute);
 app.use('/api/', classRoute);
 app.use('/api/', semesterRoute);
 app.use('/api/', statusMailRoute);
+app.use('/api/', groupStudentsRoute);
+app.use('/api/', meetingTimeRoute);
+
+
+app.options("/*", function(req, res, next) {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With');
+    res.sendStatus(200);
+});
+
+app.all('*', function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    next();
+});
+
 
 app.get('/', (req, res) => {
     res.status(200).send({
@@ -61,7 +79,6 @@ app.get('/', (req, res) => {
         }
     });
 });
-
 
 app.get('/api/generate-docx', async (req, res) => {
 
@@ -263,59 +280,86 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
       const sheet = workbook.Sheets[sheetName];
 
       // Convert the sheet to a JSON object
-      const jsonData = xlsx.utils.sheet_to_json(sheet);
+      const jsonData = xlsx.utils.sheet_to_json(sheet, {
+        header: 0,
+        defval: ""
+      });
 
       var data = [];
 
       for (let index = 0; index < jsonData.length; index++) {
         const item = jsonData[index];
 
-        const course = await util.promisify(db.query).call(db, `
-        SELECT * FROM course WHERE id = ?
-        `,item["Mã MH"]);
+        var course = [];
+        var group_students = [];
+        var meeting_time = [];
+        var room = [];
+        var instructor = [];
+        var semester = [];
+        var department = [];
 
-        const group_students = await util.promisify(db.query).call(db, `
-        SELECT * FROM group_students WHERE group_name = ?
-        `,item["Tên lớp"]);
+        if(item["Mã MH"] !== '') {
+            course = await util.promisify(db.query).call(db, `
+            SELECT * FROM course WHERE id = ?
+            `,item["Mã MH"]);
+        }
 
-        const meeting_time = await util.promisify(db.query).call(db, `
-        SELECT * FROM meeting_time WHERE daysOfTheWeek = ? AND time_start = ?
-        `,[item["Thứ"],item["Tiết bắt đầu"]]);
+        if(item["Tên lớp"] !== '') {
+            group_students = await util.promisify(db.query).call(db, `
+            SELECT * FROM group_students WHERE group_name = ?
+            `,item["Tên lớp"]);
+        }
 
-        const room = await util.promisify(db.query).call(db, `
-        SELECT * FROM room WHERE room_name = ?
-        `,item["Phòng"]);
+        if(item["Thứ"] !== '' && item["Tiết bắt đầu"] !== '') {
+            meeting_time = await util.promisify(db.query).call(db, `
+            SELECT * FROM meeting_time WHERE days_of_the_week = ? AND time_start = ?
+            `,[item["Thứ"],item["Tiết bắt đầu"]]);         
+        }
+        
+        if(item["Phòng"] !== '') {
+            room = await util.promisify(db.query).call(db, `
+            SELECT * FROM room WHERE room_name = ?
+            `,item["Phòng"]);
+        }
 
-        const instructor = await util.promisify(db.query).call(db, `
-        SELECT * FROM instructor WHERE instructor_name = ?
-        `,item["Tên giảng viên"]);
+        if(item["Tên giảng viên"] !== '') {
+            instructor = await util.promisify(db.query).call(db, `
+            SELECT * FROM instructor WHERE instructor_name = ?
+            `,item["Tên giảng viên"]);          
+        }
 
-        const semester = await util.promisify(db.query).call(db, `
-        SELECT * FROM semester WHERE semester_name = ?
-        `,item["Học kì"]);
+        if(item["Học kì"] !== '') {
+            semester = await util.promisify(db.query).call(db, `
+            SELECT * FROM semester WHERE semester_name = ?
+            `,item["Học kì"]);              
+        }
 
-        const department = await util.promisify(db.query).call(db, `
-        SELECT * FROM department WHERE department_name = ?
-        `,item["Khoa"]);
+        if(item["Khoa"] !== '') {
+            department = await util.promisify(db.query).call(db, `
+            SELECT * FROM department WHERE department_name = ?
+            `,item["Khoa"]);              
+        }
+
+        
 
         data.push({
-          course: course,
-          group_students: group_students,
-          meeting_time: meeting_time,
-          room: room,
-          instructor: instructor,
-          semester: semester,
-          department: department,
+          course: course[0],
+          group_students: group_students[0],
+          meeting_time: meeting_time[0],
+          room: room[0],
+          instructor: instructor[0],
+          semester: semester[0],
+          department: department[0],
           numberOfPeriods: item["Số tiết"],
           date: item["Ngày học"]
         });
       }
 
-      const isCheck = await checkConstraints(data);
+    //   const isCheck = await checkConstraints(data);
 
-      if(!isCheck){
-        data = [];
-      }
+    //   if(!isCheck){
+    //     data = [];
+    //   }
       res.status(200).send({
         status: 'success',
         data
@@ -357,56 +401,147 @@ const checkConstraints = async (data) => {
   }
 }
 
-app.post('/api/save-classes', async (req, res) => {
+app.post('/api/save-classes',upload.single('file'), async (req, res) => {
   try {
-    const classes = req.body;
+    // const classes = req.body;
 
-    for (let index = 0; index < classes.length; index++) {
-      const item = classes[index];
+    // for (let index = 0; index < classes.length; index++) {
+    //   const item = classes[index];
+    //   var instructor;
 
-      const course = await util.promisify(db.query).call(db, `
-      SELECT * FROM course WHERE id = ?
-      `,item.course[0].id);
+    //   const course = await util.promisify(db.query).call(db, `
+    //   SELECT * FROM course WHERE id = ?
+    //   `,item.course.id);
 
-      const group_students = await util.promisify(db.query).call(db, `
-      SELECT * FROM group_students WHERE group_name = ?
-      `,item.group_students[0].group_name);
+    //   const group_students = await util.promisify(db.query).call(db, `
+    //   SELECT * FROM group_students WHERE group_name = ?
+    //   `,item.group_students.group_name);
 
-      const meeting_time = await util.promisify(db.query).call(db, `
-      SELECT * FROM meeting_time WHERE daysOfTheWeek = ? AND time_start = ?
-      `,[item.meeting_time[0].daysOfTheWeek,item.meeting_time[0].time_start]);
+    //   const meeting_time = await util.promisify(db.query).call(db, `
+    //   SELECT * FROM meeting_time WHERE daysOfTheWeek = ? AND time_start = ?
+    //   `,[item.meeting_time.daysOfTheWeek,item.meeting_time.time_start]);
 
-      const room = await util.promisify(db.query).call(db, `
-      SELECT * FROM room WHERE room_name = ?
-      `,item.room[0].room_name);
+    //   const room = await util.promisify(db.query).call(db, `
+    //   SELECT * FROM room WHERE room_name = ?
+    //   `,item.room.room_name);
 
-      const instructor = await util.promisify(db.query).call(db, `
-      SELECT * FROM instructor WHERE instructor_name = ?
-      `,item.instructor[0].instructor_name);
+    //   if(item.instructor.instructor_name !== null || item.instructor.instructor_name != '') {
+    //     instructor = await util.promisify(db.query).call(db, `
+    //     SELECT * FROM instructor WHERE instructor_name = ?
+    //     `,item.instructor.instructor_name);
+    //   }
+      
+    //   const semester = await util.promisify(db.query).call(db, `
+    //   SELECT * FROM semester WHERE semester_name = ?
+    //   `,item.semester.semester_name);
 
-      const semester = await util.promisify(db.query).call(db, `
-      SELECT * FROM semester WHERE semester_name = ?
-      `,item.semester[0].semester_name);
+    //   const department = await util.promisify(db.query).call(db, `
+    //   SELECT * FROM department WHERE department_name = ?
+    //   `,item.department.department_name);
 
-      const department = await util.promisify(db.query).call(db, `
-      SELECT * FROM department WHERE department_name = ?
-      `,item.department[0].department_name);
+    //   const date = item.date;
+    //   const numberOfPeriods = item.numberOfPeriods;
 
-      const date = item.date;
-      const numberOfPeriods = item.numberOfPeriods;
+    //   await util.promisify(db.query).call(db,"INSERT INTO class SET ?",{
+    //     course_id: course.id,
+    //     instructor_id: instructor !== null ? instructor.id : null,
+    //     room_id: room.id,
+    //     meeting_time_id: meeting_time.id,
+    //     department_id: department.id,
+    //     group_students_id: group_students.id,
+    //     semester_id: semester.id,
+    //     study_time: date,
+    //     number_of_periods: numberOfPeriods
+    //   });
+    // }
+    // Access the uploaded file buffer
+    const fileBuffer = req.file.buffer;
 
-      await util.promisify(db.query).call(db,"INSERT INTO class SET ?",{
+    // Parse the Excel file
+    const workbook = xlsx.read(fileBuffer, { type: 'buffer' });
+
+    // Assuming there is only one sheet, you can access it like this
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+
+    // Convert the sheet to a JSON object
+    const jsonData = xlsx.utils.sheet_to_json(sheet, {
+      header: 0,
+      defval: ""
+    });
+
+
+    for (let index = 0; index < jsonData.length; index++) {
+      const item = jsonData[index];
+
+      var course = [];
+      var group_students = [];
+      var meeting_time = [];
+      var room = [];
+      var instructor = [];
+      var semester = [];
+      var department = [];
+
+      if(item["Mã MH"] !== '') {
+          course = await util.promisify(db.query).call(db, `
+          SELECT * FROM course WHERE id = ?
+          `,item["Mã MH"]);
+      }
+
+      if(item["Tên lớp"] !== '') {
+          group_students = await util.promisify(db.query).call(db, `
+          SELECT * FROM group_students WHERE group_name = ?
+          `,item["Tên lớp"]);
+      }
+
+      if(item["Thứ"] !== '' && item["Tiết bắt đầu"] !== '') {
+          meeting_time = await util.promisify(db.query).call(db, `
+          SELECT * FROM meeting_time WHERE days_of_the_week = ? AND time_start = ?
+          `,[item["Thứ"],item["Tiết bắt đầu"]]);         
+      }
+      
+      if(item["Phòng"] !== '') {
+          room = await util.promisify(db.query).call(db, `
+          SELECT * FROM room WHERE room_name = ?
+          `,item["Phòng"]);
+      }
+
+      if(item["Tên giảng viên"] !== '') {
+          instructor = await util.promisify(db.query).call(db, `
+          SELECT * FROM instructor WHERE instructor_name = ?
+          `,item["Tên giảng viên"]);          
+      }
+
+      if(item["Học kì"] !== '') {
+          semester = await util.promisify(db.query).call(db, `
+          SELECT * FROM semester WHERE semester_name = ?
+          `,item["Học kì"]);              
+      }
+
+      if(item["Khoa"] !== '') {
+          department = await util.promisify(db.query).call(db, `
+          SELECT * FROM department WHERE department_name = ?
+          `,item["Khoa"]);              
+      }
+
+      if(item["Tên giảng viên"] === '' || item["Tên giảng viên"] === null) {
+        instructor = null;
+      }
+
+        await util.promisify(db.query).call(db,"INSERT INTO class SET ?",{
+        id: null,
         course_id: course[0].id,
-        instructor_id: instructor[0].id,
+        instructor_id: instructor !== null ? instructor[0].id : null,
         room_id: room[0].id,
         meeting_time_id: meeting_time[0].id,
         department_id: department[0].id,
         group_students_id: group_students[0].id,
         semester_id: semester[0].id,
-        study_time: date,
-        number_of_periods: numberOfPeriods
+        date: item["Ngày học"],
+        number_of_periods: parseInt(item["Số tiết"]) 
       });
-    } 
+    }
+
     res.status(200).send({
       status: 'success'
     });
@@ -417,6 +552,51 @@ app.post('/api/save-classes', async (req, res) => {
       message: 'Internal Server Error'
     });
   }
+});
+
+app.get('/api/send-to-department', async (req, res) => {
+
+    try {
+
+    const sender_id  = req.query.sender_id;
+    
+    // Extract the raw value of the "ids" query parameter
+    const rawIds = req.query.ids;
+
+    // Remove square brackets from the string (if they exist)
+    const cleanedIds = rawIds.replace(/\[|\]/g, '');
+
+    // Split the cleaned string into an array of integers
+    const ids = cleanedIds.split(',').map(Number);
+
+
+    for (let i = 0; i < ids.length; i++){
+        const classes = await util.promisify(db.query).call(db, `
+          SELECT * FROM class WHERE department_id = ?
+          `,i);
+          for(let j = 0; j < classes;i++) {
+            const now = new Date();
+            await util.promisify(db.query).call(db,"INSERT INTO task_timetable SET ?",{
+                id: null,
+                sender_id: sender_id,
+                receiver_id: receiver_id,
+                class_id: i,
+                description: '',
+                status: now,
+                created_on: now
+              });
+          }
+      }
+        res.status(200).send({
+        message: 'success'
+        });
+        } catch (error) {
+          console.error('An error occurred:', error);
+          res.status(500).send({
+              status: 'error',
+              message: 'Internal server error',
+          });
+}
 });
 
 

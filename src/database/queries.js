@@ -9,22 +9,24 @@ CREATE TABLE IF NOT EXISTS users (
     id INT PRIMARY KEY AUTO_INCREMENT,
     first_name VARCHAR(50) NULL,
     last_name VARCHAR(50) NULL,
-    email VARCHAR(255) NOT NULL UNIQUE,
+    email VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,
     created_on TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6)
 )
 `;
 
 const createNewAccount = `
-INSERT INTO Account VALUES(null, ?, ?, ?, NOW(), ?, ?)
+INSERT INTO account VALUES(null, ?, ?, ?, ?, ?,NOW(),?)
 `;
 
 const findAccountByUserName = `
 SELECT 
+a.id,
 a.email,
 a.full_name,
 a.user_name,
 a.password,
+a.department_id,
 json_object(
         'id', at.id,
         'type_name', at.type_name
@@ -32,7 +34,7 @@ json_object(
 FROM Account a
 JOIN AccountType at ON at.id = a.type_id
 WHERE a.user_name = ?
-GROUP BY a.email, a.full_name, a.user_name
+GROUP BY a.id, a.email, a.full_name, a.user_name, a.department_id
 `;
 
 const createNewCourse = `
@@ -40,19 +42,18 @@ INSERT INTO course VALUES(null, ?, ?, ?)
 `;
 
 const findCourseById = `
-SELECT 
+SELECT
+c.id, 
 c.course_name,
 c.credits,
-c.maxNumberOfStudents, 
 GROUP_CONCAT(json_object(
-        'id', m.id,
-        'department_name', m.department_name
-        )) AS major
-FROM major_course mc
-JOIN course c ON mc.course_id = c.id
-JOIN major m ON mc.department_id = m.id
-WHERE mc.course_id = ?
-GROUP BY c.course_name
+        'id', d.id,
+        'department_name', d.department_name
+        )) AS department
+FROM course c
+JOIN department d ON d.id = c.department_id
+WHERE c.id = ?
+GROUP BY c.id, c.course_name, c.credits
 `
 
 const updateCourseById = `
@@ -104,14 +105,9 @@ SELECT
         GROUP_CONCAT(json_object(
         'id', a.id,
         'area_name', a.area_name
-        )) AS area,
-        GROUP_CONCAT(json_object(
-        'id', k.id,
-        'kind_of_room_name', k.kind_of_room_name
-        )) AS kind_of_room
+        )) AS area
         FROM room r
 		JOIN area a ON r.area_id = a.id
-		JOIN kind_of_room k ON k.id = r.kind_of_room_id
         where r.id = ?
         group by r.id,r.room_name,r.capacity
 `
@@ -139,32 +135,29 @@ SELECT
         GROUP_CONCAT(json_object(
         'id', a.id,
         'area_name', a.area_name
-        )) AS area,
-        GROUP_CONCAT(json_object(
-        'id', k.id,
-        'kind_of_room_name', k.kind_of_room_name
-        )) AS kind_of_room
+        )) AS area
         FROM room r
 		JOIN area a ON r.area_id = a.id
-		JOIN kind_of_room k ON k.id = r.kind_of_room_id
         group by r.id,r.room_name,r.capacity
 `;
+
+const getAllRooms = `
+SELECT * FROM room
+`
 
 const getCoursesByDepartment = `
 SELECT
 c.id, 
 c.course_name,
 c.credits,
-c.maxNumberOfStudents, 
 GROUP_CONCAT(json_object(
         'id', d.id,
         'department_name', d.department_name
         )) AS department
-FROM department_course dc
-JOIN course c ON dc.course_id = c.id
-JOIN department d ON dc.department_id = d.id
-WHERE dc.department_id = 1
-GROUP BY c.id, c.course_name, c.credits, c.maxNumberOfStudents
+FROM course c
+JOIN department d ON d.id = c.department_id
+WHERE c.department_id = ?
+GROUP BY c.id, c.course_name, c.credits
 `
 
 const createNewCourseInstructor = `
@@ -193,28 +186,88 @@ WHERE d.id = ? AND s.id = ? AND cl.instructor_id = i.id AND cl.semester_id = s.i
 GROUP BY i.id, i.instructor_name, i.email, i.number_phone, d.department_name, c.course_name
 `
 
-const getInstructors = `
+const getInstructorsByDepartmentID = `
 SELECT 
 i.id,
 i.instructor_name,
 i.email,
 i.number_phone,
 i.gender,
-m.department_name,
+d.department_name,
 c.course_name
-FROM course_instructor ci
-JOIN course c ON ci.course_id = c.id
-JOIN instructor i ON ci.instructor_id = i.id
-JOIN department m ON m.id = i.department_id
-GROUP BY i.id, i.instructor_name, i.email, i.number_phone, m.department_name, c.course_name
+FROM instructor_course ic
+JOIN course c ON ic.course_id = c.id
+JOIN instructor i ON ic.instructor_id = i.id
+JOIN department d ON d.id = i.department_id
+where d.id = ?
+GROUP BY i.id, i.instructor_name, i.email, i.number_phone, c.course_name, d.department_name
 `
 
 const getSemesters = `
 SELECT * FROM semester
 `
+const getCourses = `
+SELECT * FROM course
+`
+const getGroupStudents = `
+SELECT * FROM group_students
+`
+
+const getInstructors = `
+SELECT * FROM instructor
+`
+
+
+const getMeetingTime = `
+SELECT * FROM meeting_time
+`
 
 const getStatusMail = `
 SELECT * FROM status_mail 
+`
+
+
+
+const getAllAccount = `
+SELECT
+a.id, 
+a.full_name,
+a.user_name,
+a.email,
+GROUP_CONCAT(json_object(
+        'id', at.id,
+        'type_name', at.type_name
+        )) AS type
+FROM account a
+JOIN accounttype at ON at.id = a.type_id
+GROUP BY a.id, a.full_name, a.user_name, a.email
+`
+
+const findAccountById = `
+SELECT 
+a.id,
+a.email,
+a.full_name,
+a.user_name,
+a.password,
+json_object(
+        'id', at.id,
+        'type_name', at.type_name
+        ) AS type 
+FROM Account a
+JOIN AccountType at ON at.id = a.type_id
+WHERE a.id = ?
+GROUP BY a.id, a.email, a.full_name, a.user_name
+`;
+
+const getAccountType = `
+SELECT * FROM accounttype
+`;
+
+const getDepartmentInClass = `
+SELECT d.id, d.department_name 
+FROM department d, class c where d.id = c.department_id 
+GROUP BY  d.id, d.department_name
 `
 
 module.exports = {
@@ -241,8 +294,17 @@ module.exports = {
     getKindOfRooms,
     getCoursesByDepartment,
     getDepartment,
-    getInstructors,
+    getInstructorsByDepartmentID,
     getSemesters,
     getInstructorsFromTimeTable,
-    getStatusMail
+    getStatusMail,
+    getAllAccount,
+    findAccountById,
+    getAccountType,
+    getCourses,
+    getGroupStudents,
+    getMeetingTime,
+    getInstructors,
+    getAllRooms,
+    getDepartmentInClass
 };

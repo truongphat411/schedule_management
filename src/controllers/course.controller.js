@@ -43,12 +43,7 @@ exports.read = (req, res) => {
         if(data){
             res.status(200).send({
                 status: 'success',
-                data: {
-                    course_name: data.course_name,
-                    credits: data.credits,
-                    maxNumberOfStudents: data.maxNumberOfStudents,
-                    major: data.major,
-                }
+                data
             });
             return;
         }
@@ -115,6 +110,23 @@ exports.readAllByIdDepartment = (req, res) => {
     const departmentId = req.params.departmentId;
 
     Course.getCoursesByDepartment(departmentId, (err, data) => {
+        if (err) {
+            res.status(500).send({
+                status: "error",
+                message: err.message
+            });
+        } else {    
+            res.status(200).send({
+                status: "success",
+                data
+            });
+        }
+    })
+}
+
+exports.readAll = (req, res) => {
+
+    Course.readAll((err, data) => {
         if (err) {
             res.status(500).send({
                 status: "error",

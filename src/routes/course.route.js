@@ -21,5 +21,8 @@ router.route('/delete-course/:courseId')
 router.route('/courses/:departmentId')
     .get(asyncHandler(courseController.readAllByIdDepartment));
 
+router.route('/courses')
+    .get(asyncHandler(courseController.readAll));
+
 
 module.exports = router;

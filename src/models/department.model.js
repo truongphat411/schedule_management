@@ -1,6 +1,7 @@
 const db = require('../config/db.config');
 const { 
   getDepartment: getDepartmentQuery,
+  getDepartmentInClass: getDepartmentInClassQuery
   } = require('../database/queries');
 
 class Department {
@@ -33,6 +34,17 @@ class Department {
                 cb(null, res);
         });
     }
+
+    static getDepartmentInClass(cb) {
+      db.query(getDepartmentInClassQuery, (err, res) => {
+              if (err) {
+                  logger.error(err.message);
+                  cb(err, null);
+                  return;
+              }
+              cb(null, res);
+      });
+  }
 
 }
 

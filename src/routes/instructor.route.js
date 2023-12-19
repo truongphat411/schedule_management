@@ -16,11 +16,14 @@ router.route('/update-instructor/:instructorId')
 router.route('/delete-instructor/:instructorId')
     .get(asyncHandler(instructorController.delete));
 
-router.route('/instructors')
+router.route('/instructors/:department_id')
     .get(asyncHandler(instructorController.readAll));
 
 router.route('/instructors-from-timetable')
     .post(asyncHandler(instructorController.readFromTimetable));
+
+router.route('/instructors')
+    .get(asyncHandler(instructorController.readAllInstructor));
 
 
 module.exports = router;

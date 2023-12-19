@@ -106,8 +106,8 @@ exports.delete = (req, res) => {
 }
 
 exports.readAll = (req, res) => {
-
-    Instructor.getInstructors((err, data) => {
+    const department_id = req.params.department_id
+    Instructor.getInstructors(department_id, (err, data) => {
         if (err) {
             res.status(500).send({
                 status: "error",
@@ -126,6 +126,23 @@ exports.readFromTimetable = (req, res) => {
     const {department_id , semester_id} = req.body;
 
     Instructor.getInstructorsFromTimetable(department_id, semester_id, (err, data) => {
+        if (err) {
+            res.status(500).send({
+                status: "error",
+                message: err.message
+            });
+        } else {    
+            res.status(200).send({
+                status: "success",
+                data
+            });
+        }
+    })
+}
+
+exports.readAllInstructor = (req, res) => {
+
+    Instructor.readAll((err, data) => {
         if (err) {
             res.status(500).send({
                 status: "error",

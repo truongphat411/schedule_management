@@ -4,7 +4,8 @@ const {
     findRoomById: findRoomByIdQuery,
     updateRoomById: updateRoomByIdQuery,
     deleteRoomById: deleteRoomByIdQuery,
-    getRooms: getRoomsQuery
+    getRooms: getRoomsQuery,
+    getAllRooms: getAllRoomsQuery
 } = require('../database/queries');
 const { logger } = require('../utils/logger');
 
@@ -70,7 +71,6 @@ class Room {
                 if (res.length) {
                     const room = res[0];
                     room.area = JSON.parse(room.area);
-                    room.kind_of_room = JSON.parse(room.kind_of_room);
                     cb(null, room);
                     return;
                 }
@@ -118,11 +118,25 @@ class Room {
                 const roomsWithParsedJSON = res.map(room => {
                     return {
                         ...room,
-                        area: JSON.parse(room.area),
-                        kind_of_room: JSON.parse(room.kind_of_room)
+                        area: JSON.parse(room.area)
                     };
                 });
                 cb(null, roomsWithParsedJSON);
+        });
+    }
+
+    static readAll(cb) {
+        db.query(getAllRoomsQuery, (err, res) => {
+                if (err) {
+                    logger.error(err.message);
+                    cb(err, null);
+                    return;
+                }
+                if (res.length) {
+                    cb(null, res);
+                    return;
+                }
+                cb({ kind: "not_found" }, null);
         });
     }
 }

@@ -5,17 +5,16 @@ const {
     updateCourseById: updateCourseByIdQuery,
     deleteCourseById: deleteCourseByIdQuery,
     createNewCourseInstructor: createNewCourseInstructorQuery,
-    getCoursesByDepartment: getCoursesByDepartmentQuery
+    getCoursesByDepartment: getCoursesByDepartmentQuery,
+    getCourses: getCoursesQuery
     } = require('../database/queries');
 const { logger } = require('../utils/logger');
 
 class Course {
-    constructor(id,course_name, credits, maxNumberOfStudents, semester, instructors) {
+    constructor(id,course_name, credits, instructors) {
         this.id = id;
         this.course_name = course_name;
         this.credits = credits;
-        this.maxNumberOfStudents = maxNumberOfStudents;
-        this.semester = semester;
         this.instructors = instructors;
     }
 
@@ -31,26 +30,19 @@ class Course {
         return this.credits;
     }
 
-    getMaxNumberOfStudents(){
-        return this.maxNumberOfStudents;
-    }
-
     getInstructors(){
         return this.instructors;
     }
 
-    getSemester(){
-        return this.semester;
-    }
 
     
-    static create(newCourse, major_id, cb) {
+    static create(newCourse, cb) {
         var course_id;
         db.query(createNewCourseQuery, 
             [
                 newCourse.course_name, 
                 newCourse.credits,
-                newCourse.maxNumberOfStudents,
+                newCourse.department_id,
             ], (err, res) => {
                 if (err) {
                     logger.error(err.message);
@@ -82,32 +74,9 @@ class Course {
                     return;
                 }
                 if (res.length) {
-                    // Split the majorString into individual JSON objects
-                    const majorObjects = res[0].major.split("},{");
-                    
-                    // Process each major object
-                    const majorArray = majorObjects.map(majorObj => {
-                    // If it's not the first object, add '{' at the beginning
-                    if (majorObj.indexOf('{') !== 0) {
-                    majorObj = '{' + majorObj;
-                    }
-                    // If it's not the last object, add '}' at the end
-                    if (majorObj.lastIndexOf('}') !== majorObj.length - 1) {
-                    majorObj = majorObj + '}';
-                    }
-                
-                    // Now, majorObj should be a valid JSON string
-                    // You can safely parse it
-                    return JSON.parse(majorObj);
-                    });
-
-                    cb(null, {
-                        id: res[0].id,
-                        course_name: res[0].course_name,
-                        credits: res[0].credits,
-                        maxNumberOfStudents: res[0].maxNumberOfStudents,
-                        major: majorArray
-                    });
+                    const course = res[0];
+                    course.department = JSON.parse(course.department);
+                    cb(null, course);
                     return;
                 }
                 cb({ kind: "not_found" }, null);
@@ -166,6 +135,20 @@ class Course {
         });
     }
 
+    static readAll(cb) {
+        db.query(getCoursesQuery, (err, res) => {
+                if (err) {
+                    logger.error(err.message);
+                    cb(err, null);
+                    return;
+                }
+                if (res.length) {
+                    cb(null, res);
+                    return;
+                }
+                cb({ kind: "not_found" }, null);
+        });
+    }
 }
 
 module.exports = Course;

@@ -4,8 +4,9 @@ const {
     findInstructorById: findInstructorByIdQuery,
     updateInstructorById: updateInstructorByIdQuery,
     deleteInstructorById: deleteInstructorById,
-    getInstructors: getInstructorsQuery,
-    getInstructorsFromTimeTable: getInstructorsFromTimeTableQuery
+    getInstructorsByDepartmentID: getInstructorsByDepartmentIDQuery,
+    getInstructorsFromTimeTable: getInstructorsFromTimeTableQuery,
+    getInstructors: getInstructorsQuery
 } = require('../database/queries');
 const { logger } = require('../utils/logger');
 
@@ -90,8 +91,8 @@ class Instructor {
         });
     }
 
-    static getInstructors(cb) {
-        db.query(getInstructorsQuery, (err, res) => {
+    static getInstructors(department_id, cb) {
+        db.query(getInstructorsByDepartmentIDQuery,department_id, (err, res) => {
                 if (err) {
                     logger.error(err.message);
                     cb(err, null);
@@ -120,6 +121,21 @@ class Instructor {
                     return;
                 }
                 
+        });
+    }
+
+    static readAll(cb) {
+        db.query(getInstructorsQuery, (err, res) => {
+                if (err) {
+                    logger.error(err.message);
+                    cb(err, null);
+                    return;
+                }
+                if (res.length) {
+                    cb(null, res);
+                    return;
+                }
+                cb({ kind: "not_found" }, null);
         });
     }
 }

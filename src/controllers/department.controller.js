@@ -16,3 +16,20 @@ exports.readAll = (req, res) => {
         }
     })
 }
+
+exports.readDepartmentInClass = (req, res) => {
+
+    Department.getDepartmentInClass((err, data) => {
+        if (err) {
+            res.status(500).send({
+                status: "error",
+                message: err.message
+            });
+        } else {    
+            res.status(200).send({
+                status: "success",
+                data
+            });
+        }
+    })
+}
