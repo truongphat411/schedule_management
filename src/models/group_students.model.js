@@ -4,10 +4,10 @@ const {
 } = require('../database/queries');
 const { logger } = require('../utils/logger');
 class GroupStudents {
-    constructor(id, group_name, numberOfStudents, department_id) {
+    constructor(id, group_name, number_of_students, department_id) {
         this.id = id;
         this.group_name = group_name;
-        this.numberOfStudents = numberOfStudents;
+        this.number_of_students = number_of_students;
         this.department_id = department_id;
     }
 
@@ -20,7 +20,7 @@ class GroupStudents {
     }
 
     getNumberOfStudents() {
-        return this.numberOfStudents;
+        return this.number_of_students;
     }
 
     getDepartmentId() {

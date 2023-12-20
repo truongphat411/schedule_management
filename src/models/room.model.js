@@ -10,12 +10,11 @@ const {
 const { logger } = require('../utils/logger');
 
 class Room {
-    constructor(id,room_name, capacity, area_id, kind_of_room_id) {
+    constructor(id,room_name, capacity, area_id) {
         this.id = id;
         this.room_name = room_name;
         this.capacity = capacity;
-        this.area_id = area_id;
-        this.kind_of_room_id = kind_of_room_id;
+        this.area_id = area_id
     }
 
     getRoomId() {
@@ -33,10 +32,6 @@ class Room {
     getAreaId() {
         return this.area_id;
     }
-
-    getKingOfRoomId() {
-        return this.kind_of_room_id;
-    }
    
     static create(newRoom, cb) {
         db.query(createNewRoomQuery, 
@@ -44,7 +39,6 @@ class Room {
                 newRoom.room_name,
                 newRoom.capacity,
                 newRoom.area_id,
-                newRoom.kind_of_room_id
             ], (err, res) => {
                 if (err) {
                     logger.error(err.message);
@@ -56,7 +50,6 @@ class Room {
                     room_name: newRoom.room_name,
                     capacity: newRoom.capacity,
                     area_id: newRoom.area_id,
-                    kind_of_room_id: newRoom.kind_of_room_id
                 });
         });
     }

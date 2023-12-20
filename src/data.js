@@ -27,114 +27,108 @@ class Data {
         const rsr = await async_get_query("SELECT * FROM room");
         const r = [];
         for (let i of rsr) {
-            const room = new Room(i.id,i.room_name,i.capacity,i.area_id,i.kind_of_room_id);
+            const room = new Room(i.id,i.room_name,i.capacity,i.area_id);
             r.push(room);
         }
         this.room = r;
         //// MeetingTime
-        const rsmt = await async_get_query("SELECT * FROM meeting_time");
+        const rsmt = await async_get_query("SELECT id,time,time_start,days_of_the_week,sessions_during_the_day FROM meeting_time;");
         const mt = [];
         for (let i of rsmt) {
-            const meeting_time = new MeetingTime(i.id,i.time,i.time_start,i.daysOfTheWeek,i.sessionsDuringTheDay);
+            const meeting_time = new MeetingTime(i.id,i.time,i.time_start,i.days_of_the_week,i.sessions_during_the_day);
             mt.push(meeting_time);
         }
         this.meetingTimes = mt;
         //// Instructor
-        const rsinstr = await async_get_query("SELECT * FROM instructor");
+        const rsinstr = await async_push_query("SELECT * FROM instructor");
         const instr = [];
         for (let i of rsinstr) {
-            const instructor = new Instructor(i.id,i.instructor_name);
+            const instructor = new Instructor(i.id,i.instructor_name,i.email,i.number_phone,i.gender,i.department_id);
             instr.push(instructor);
         }
         this.instructors = instr;
 
         //// Group_students
         const rsgrstud = await async_push_query(`
-        SELECT * FROM group_students WHERE department_id = ?
-        `, department_id);
+        SELECT * FROM group_students`);
         const grstud = [];
         for (let i of rsgrstud) {
-            const group_students = new GroupStudents(i.id,i.group_name,i.numberOfStudents,i.department_id);
+            const group_students = new GroupStudents(i.id,i.group_name,i.number_of_students,i.department_id);
             grstud.push(group_students);
         }
         this.group_students = grstud;
 
         //// Course
-        const rsc = await async_get_query(`
+        const rsc = await async_push_query(`
         SELECT
         c.id,
         c.course_name,
         c.credits,
-        c.maxNumberOfStudents,
-        GROUP_CONCAT(json_object(
-        'id', s.id,
-        'semester_name', s.semester_name
-        )) AS  semester,
         GROUP_CONCAT(json_object(
         'id', i.id,
-        'instructor_name', i.instructor_name
+        'instructor_name', i.instructor_name,
+        'email', i.email,
+        'number_phone', i.number_phone,
+        'gender', i.gender,
+        'department_id', i.department_id
         )) AS  listInstructor
         FROM course c
-        JOIN course_instructor ci ON c.id = ci.course_id
-        JOIN instructor i ON ci.instructor_id = i.id
-        JOIN semester s ON c.semester_id = s.id
-        GROUP BY c.id, c.course_name, c.credits, c.maxNumberOfStudents
-        `);
+        JOIN instructor_course ic ON c.id = ic.course_id
+        JOIN department d ON d.id = c.department_id
+        JOIN instructor i ON ic.instructor_id = i.id
+        GROUP BY c.id, c.course_name, c.credits
+        `,);
         const c = [];
         for (let i of rsc) {
-            // Parse the JSON string into an array of instructor objects
             const instructorArray = JSON.parse(`[${i.listInstructor}]`);
-            // Create an array of instructor objects
-            const instructors = instructorArray.map((instructor) => new Instructor(instructor.id, instructor.instructor_name));
-            const semesterArray = JSON.parse(`[${i.semester}]`);
-            const semesters = semesterArray.map((semester) => new Semester(semester.id, semester.semester_name));
-            const course = new Course(i.id,i.course_name,i.credits,i.maxNumberOfStudents,semesters,instructors);
+            const instructors = instructorArray.map((instructor) => new Instructor(instructor.id, instructor.instructor_name,instructor.email,instructor.number_phone,instructor.gender,instructor.department_id));
+            const course = new Course(i.id,i.course_name,i.credits,instructors);
             c.push(course);
         }
         this.courses = c;
 
-        const rsdept = await async_push_query(`
-        SELECT
-        d.id,
-        d.department_name,
-        GROUP_CONCAT(json_object(
-        'id', c.id,
-        'course_name', c.course_name,
-        'credits', c.credits,
-        'maxNumberOfStudents', c.maxNumberOfStudents
-        )) AS courses
-        FROM department d
-        JOIN department_course dc ON d.id = dc.department_id
-        JOIN course c ON dc.course_id = c.id
-        WHERE d.id = ? AND c.semester_id = ?
-        GROUP BY d.id, d.department_name
-        `, [department_id, semester_id]);
-        const rsgrst = await async_push_query(`
-        SELECT * FROM group_students WHERE department_id = ?
-        `, department_id);
+        const rsdept = await async_get_query(`
+        SELECT * FROM department
+        `);
+        const rsgrst = await async_get_query(`
+        SELECT * FROM group_students
+        `);
         const dept = [];
         for (let i of rsdept) {
             try {
-                const courseArray = JSON.parse(`[${i.courses}]`);
+                const rsc = await async_push_query(`
+                SELECT
+                c.id,
+                c.course_name,
+                c.credits,
+                GROUP_CONCAT(json_object(
+                'id', i.id,
+                'instructor_name', i.instructor_name,
+                'email', i.email,
+                'number_phone', i.number_phone,
+                'gender', i.gender,
+                'department_id', i.department_id
+                )) AS  listInstructor
+                FROM course c
+                JOIN instructor_course ic ON c.id = ic.course_id
+                JOIN department d ON d.id = c.department_id
+                JOIN instructor i ON ic.instructor_id = i.id
+                WHERE d.id = ?
+                GROUP BY c.id, c.course_name, c.credits `,i.id);
                 const courses = [];
-                for (let x of courseArray) {
-                    for (let y of this.courses) {
-                        if (x.id === y.id) {
-                            const course = new Course(x.id, x.course_name, x.credits, x.maxNumberOfStudents, y.semester, y.instructors);
-                            courses.push(course);
-                        }
-                    }
+                for(let c of rsc) {
+                    const instructorArray = JSON.parse(`[${c.listInstructor}]`);
+                    const instructors = instructorArray.map((instructor) => new Instructor(instructor.id, instructor.instructor_name,instructor.email,instructor.number_phone,instructor.gender,instructor.department_id));
+                    const course = new Course(c.id,c.course_name,c.credits,instructors);
+                    courses.push(course);
                 }
-                const students = [];
-                for (let x of rsgrst) {
-                    for (let y of this.group_students) {
-                        if (x.id === y.id) {
-                            const group = new GroupStudents(x.id, x.group_name, x.numberOfStudents, x.department_id);
-                            students.push(group);
-                        }
-                    }
+                const rsgr = await async_push_query(`select * from group_students where department_id = ?`,i.id);
+                const group_students = [];
+                for(let d of rsgr) {
+                    const group = new GroupStudents(d.id,d.group_name,d.number_of_students,d.department_id);
+                    group_students.push(group);
                 }
-                const department = new Department(i.id, i.department_name, courses, students);
+                const department = new Department(i.id, i.department_name, courses, group_students);
                 dept.push(department);
             } catch (error) {
                 console.error("Error parsing courses:", error);

@@ -11,16 +11,20 @@ const {
 const { logger } = require('../utils/logger');
 
 class Instructor {
-    constructor(id,instructor_name) {
+    constructor(id,instructor_name,email,number_phone,gender,department_id) {
         this.id = id;
         this.instructor_name = instructor_name;
+        this.email = email;
+        this.number_phone = number_phone;
+        this.gender = gender;
+        this.department_id = department_id;
     }
 
     getId() {
         return this.id;
       }
     
-    getName() {
+    getInstructorName() {
         return this.instructor_name;
     }
     

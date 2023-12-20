@@ -16,10 +16,15 @@ class Schedule{
     }
 
     initialize(){
-      /// semester - 1 / course - 3 / group_students - 4
-          this.data.getDepts().forEach(dept => {
-            dept.getGroupStudents().forEach(group => {
-              dept.getCourses().forEach(course => {
+        const depts = this.data.getDepts();
+        for(let i = 0;i < depts.length;i++) {
+          const dept = depts[i];
+          const groupStudents = dept.getGroupStudents();
+          for(let j = 0; j < groupStudents.length; j++) {
+              const group = groupStudents[j];
+              const courses = dept.getCourses();
+              for (let k = 0; k < courses.length; k++) {
+                const course = courses[k];
                 const newClass = new Class(this.classNumb++, group, dept, course);
                 const generateMeetingTime = this.data.getMeetingTimes()[Math.floor(Math.random() * this.data.getMeetingTimes().length)];
                 const generateRoom = this.data.getRooms()[Math.floor(Math.random() * this.data.getRooms().length)];
@@ -28,16 +33,9 @@ class Schedule{
                 newClass.setRoom(generateRoom);
                 newClass.setInstructor(generateInstructor);
                 this.classes.push(newClass);
-                if(course.credits == 3){
-                  const newClass = new Class(this.classNumb++, group, dept, course);
-                  newClass.setMeetingTime(this.data.getMeetingTimes()[Math.floor(Math.random() * this.data.getMeetingTimes().length)]);
-                  newClass.setRoom(this.data.getRooms()[Math.floor(Math.random() * this.data.getRooms().length)]);
-                  newClass.setInstructor(generateInstructor);
-                  this.classes.push(newClass);
-                }
-            });
-            });
-        });
+              }
+          }
+        }
         return this;
     }
     getNumberOfConflicts() {
@@ -62,9 +60,6 @@ class Schedule{
         this.numbOfConflicts = 0;
 
         this.classes.forEach(x => {
-          // if (x.getRoom().getSeatingCapacity() < x.getCourse().getMaxNumberOfStudents()) {
-          //   this.numbOfConflicts++;
-          // }
           this.classes.filter(y => this.classes.indexOf(y) >= this.classes.indexOf(x)).forEach(y => {
             if (x.getMeetingTime() === y.getMeetingTime() && x.getId() !== y.getId()) {
               if (x.getRoom() === y.getRoom()) {
@@ -72,22 +67,6 @@ class Schedule{
               }
               if (x.getInstructor() === y.getInstructor()) {
                 this.numbOfConflicts++;
-              }
-            }
-            if(x.getInstructor() === y.getInstructor() && x.getId() !== y.getId()) {
-              if (x.getRoom().getAreaId() !== y.getRoom().getAreaId()) {
-                this.numbOfConflicts++;
-              }
-              if(x.getMeetingTime().getDaysOfTheWeek() === y.getMeetingTime().getDaysOfTheWeek()) {
-                if(x.getMeetingTime().getSessionsDuringTheDay() !== y.getMeetingTime().getSessionsDuringTheDay()) {
-                  this.numbOfConflicts++;
-                }
-                if(x.getMeetingTime() === y.getMeetingTime()){
-                  this.numbOfConflicts++;
-                }
-                if(x.getRoom() !== y.getRoom()){
-                  this.numbOfConflicts++;
-                }
               }
             }
           });

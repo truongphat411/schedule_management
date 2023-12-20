@@ -53,14 +53,6 @@ class GeneticAlgorithm {
     for (let x = this.driver.getNUMB_OF_ELITE_SCHEDULES; x < population.getSchedules().length; x++) {
       schedules[x] = mutateSchedule(population.getSchedules()[x]);
     }
-
-    // schedules.forEach((schedule, x) => {
-    //   if (x < Driver.NUMB_OF_ELITE_SCHEDULES) {
-    //     schedules[x] = population.getSchedules()[x];
-    //   } else {
-    //     schedules[x] = this.mutateSchedule(population.getSchedules()[x]);
-    //   }
-    // });
     return mutatePopulation;
   }
 

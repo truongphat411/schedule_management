@@ -180,17 +180,17 @@ app.get('/api/generate-docx', async (req, res) => {
 
         await sendEmailWithAttachment(email, instructor_name, pdfBuffer);
 
-        const status = await util.promisify(db.query).call(db,`
-          SELECT * FROM status_mail 
-          WHERE semester_id = ? AND 
-          instructor_id = ?`,[semester_id, ids[i]]);
-        if (status.length === 0) {
-          await util.promisify(db.query).call(db,"INSERT INTO status_mail SET ?",{
-            message: 'đã gửi',
-            instructor_id: ids[i],
-            semester_id: semester_id
-          });
-        }
+        // const status = await util.promisify(db.query).call(db,`
+        //   SELECT * FROM status_mail 
+        //   WHERE semester_id = ? AND 
+        //   instructor_id = ?`,[semester_id, ids[i]]);
+        // if (status.length === 0) {
+        //   await util.promisify(db.query).call(db,"INSERT INTO status_mail SET ?",{
+        //     message: 'đã gửi',
+        //     instructor_id: ids[i],
+        //     semester_id: semester_id
+        //   });
+        // }
       }
         res.status(200).send({
         message: 'Emails sent successfully'
