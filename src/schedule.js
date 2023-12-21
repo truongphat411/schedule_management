@@ -57,22 +57,35 @@ class Schedule{
     }
 
     calculateFitness() {
-        this.numbOfConflicts = 0;
-
-        this.classes.forEach(x => {
-          this.classes.filter(y => this.classes.indexOf(y) >= this.classes.indexOf(x)).forEach(y => {
-            if (x.getMeetingTime() === y.getMeetingTime() && x.getId() !== y.getId()) {
-              if (x.getRoom() === y.getRoom()) {
-                this.numbOfConflicts++;
+      this.numbOfConflicts = 0;
+  
+      const classesLength = this.classes.length;
+  
+      for (let i = 0; i < classesLength; i++) {
+          const x = this.classes[i];
+  
+          for (let j = i + 1; j < classesLength; j++) {
+              const y = this.classes[j];
+  
+              if (x.getMeetingTime() === y.getMeetingTime() && x.getId() !== y.getId()) {
+                  if (x.getRoom() === y.getRoom()) {
+                      this.numbOfConflicts++;
+                  }
+                  if(x.getInstructor() === y.getInstructor()) {
+                     this.numbOfConflicts++;
+                  }
               }
-              if (x.getInstructor() === y.getInstructor()) {
-                this.numbOfConflicts++;
+              if(x.getInstructor() === y.getInstructor() && x.getId() !== y.getId()) {
+                if(x.getMeetingTime().daysOfTheWeek === y.getMeetingTime().daysOfTheWeek && 
+                   x.getMeetingTime().sessionsDuringTheDay !== y.getMeetingTime().sessionsDuringTheDay && x.getRoom().area_id !== y.getRoom().area_id) {
+                     this.numbOfConflicts++;
+                   }
               }
-            }
-          });
-        });
-        return 1 / (this.numbOfConflicts + 1);
-    }
+          }
+      }
+  
+      return 1 / (this.numbOfConflicts + 1);
+  }
 
     toString() {
       let returnValue = '';

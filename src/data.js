@@ -22,7 +22,7 @@ class Data {
     }
 
 
-    async initialize(department_id, semester_id) {
+    async initialize() {
         //// Room
         const rsr = await async_get_query("SELECT * FROM room");
         const r = [];

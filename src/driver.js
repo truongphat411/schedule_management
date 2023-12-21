@@ -47,14 +47,13 @@ class Driver {
 
 
 
-  async main(department_id, semester_id) {
+  async main() {
     this.data = new Data();
     const driver = new Driver();
-    await this.data.initialize(department_id, semester_id);
+    await this.data.initialize();
     var generationNumber = 0;
     const geneticAlgorithm = new GeneticAlgorithm(this.data,driver);
     var population = new Population(this.POPULATION_SIZE, this.data).sortByFitness();
-    //this.printScheduleAsTable(population.getSchedules()[0], generationNumber);
     this.classNumb = 1;
     let lastSchedule = null;
 
@@ -62,8 +61,6 @@ class Driver {
       ++generationNumber;
       population = geneticAlgorithm.evolve(population).sortByFitness();
       this.scheduleNumb = 0;
-      //this.printScheduleAsTable(population.getSchedules()[0], generationNumber);
-      console.log('PhatNMT-log: ',generationNumber);
       this.classNumb = 1;
     }
 
